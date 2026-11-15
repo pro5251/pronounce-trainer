@@ -55,12 +55,15 @@ cd public && python -m http.server 8000
 - `accept`：語音辨識常聽成的其他寫法，例如產品名 `"accept": ["ops genie"]`。
 - `kind`：`"word"` 或 `"sentence"`。不填的話，四個字以上或以標點結尾會自動當成句子。
 
-寫完先檢查再推上去：
+寫完先產生音檔、檢查，再推上去：
 
 ```bash
+npm run audio   # 依 IPA 產生每個音節與單音的音檔到 public/audio（需要 Windows）
 npm run check   # 檢查每個字母都有對到、音標都認得、沒有重複
-npm test        # 單元測試（內含 words.json 檢查）
+npm test        # 單元測試（含 words.json 與音檔是否齊全）
 ```
+
+音節和單音的聲音是用 Windows 內建語音引擎（Zira）直接依照 IPA 合成的，所以每個音都照標註發音，不靠猜拼字。檔名由 IPA 內容決定，改了音標就會產生新檔，舊檔自動刪除。整個字和例字仍然用瀏覽器語音，比較自然。
 
 也可以直接請 Claude Code 幫你加：「幫我在 words.json 加 dashboard、silence、mute timing」。
 

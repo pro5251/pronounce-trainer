@@ -138,6 +138,25 @@ export function respell(syl){
   return on+(VCLOSED[v]||VOPEN[v])+coda;
 }
 
+/* ---------- pre-rendered audio (generated from IPA by scripts/gen-audio.mjs) ---------- */
+export function syllableIpa(syl){
+  return (syl.stress===1?'ˈ':syl.stress===2?'ˌ':'')+syl.segs.map(s=>s.p||'').join('');
+}
+/* The Windows speech engine needs plain g and has no r-colored vowel symbols. */
+export function engineIpa(ipa){
+  return String(ipa).replace(/ɡ/g,'g').replace(/ɚ/g,'ər').replace(/ɝ/g,'ɜr');
+}
+/* Content-addressed file name, so edited IPA never plays stale audio. */
+export function audioPath(ipa){
+  const bytes=new TextEncoder().encode(engineIpa(ipa));
+  return 'audio/'+[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('')+'.wav';
+}
+export function allAudioIpas(rawItems){
+  const set=new Set(Object.keys(PH));
+  for(const raw of rawItems) for(const t of raw.tokens) for(const syl of parseToken(t)) set.add(syllableIpa(syl));
+  return [...set];
+}
+
 /* Returns a list of problems; empty means the entry is valid. */
 export function validateEntry(raw){
   const errs=[];

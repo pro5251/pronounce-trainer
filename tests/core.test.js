@@ -76,3 +76,18 @@ test('queue limits new items per day and puts flagged first', () => {
   assert.equal(active.length, 19);
   assert.deepEqual(queue.map(x => x.id), ['w6', 'w5', 'w0', 'w1', 'w2']);
 });
+
+test('engine IPA mapping and audio file names', async () => {
+  const { engineIpa, audioPath } = await import('../public/js/core.js');
+  assert.equal(engineIpa('dɪˈskʌvɚ'), 'dɪˈskʌvər');
+  assert.equal(engineIpa('ˈtɝmz'), 'ˈtɜrmz');
+  assert.equal(engineIpa('ˈɡreɪ'), 'ˈgreɪ');
+  assert.equal(audioPath('ˈɡreɪ'), audioPath('ˈgreɪ'));
+  assert.match(audioPath('ʃən'), /^audio\/[0-9a-f]+\.wav$/);
+});
+
+test('every syllable and sound has a generated audio file', async () => {
+  const { allAudioIpas, audioPath } = await import('../public/js/core.js');
+  const missing = allAudioIpas(words).filter(ipa => !fs.existsSync(new URL('../public/' + audioPath(ipa), import.meta.url)));
+  assert.deepEqual(missing, [], '缺少音檔，請在 Windows 執行 node scripts/gen-audio.mjs');
+});

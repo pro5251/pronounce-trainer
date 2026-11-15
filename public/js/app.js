@@ -45,15 +45,29 @@ function pickVoice() {
   voice = pref.map(p => us.find(v => v.name.includes(p))).find(Boolean) || us[0] || all.find(v => /^en/i.test(v.lang)) || null;
 }
 if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+let clip = null;
+function stopAll() { if (clip) { clip.onended = clip.onerror = null; clip.pause(); clip = null; } if (synth) synth.cancel(); }
 function speak(text, rate, onend) {
   if (!synth) return;
-  synth.cancel();
+  stopAll();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US'; if (voice) u.voice = voice;
   u.rate = rate ?? store.settings.rate;
   if (onend) { u.onend = onend; u.onerror = onend; }
   synth.speak(u);
 }
+/* Play a pre-rendered IPA clip (audio/*.wav); fall back to browser speech of `fallback` if it is missing. */
+function playIpa(ipa, fallback, onend) {
+  stopAll();
+  const a = new Audio(C.audioPath(ipa)); clip = a;
+  let done = false;
+  const finish = ok => { if (done) return; done = true; if (clip === a) clip = null; if (ok) onend && onend(); else speak(fallback, 0.7, onend); };
+  a.onended = () => finish(true);
+  a.onerror = () => finish(false);
+  a.play().catch(() => finish(false));
+}
+const playSyl = (syl, onend) => playIpa(C.syllableIpa(syl), C.respell(syl), onend);
+const playSound = (ph, then) => playIpa(ph, C.PH[ph]?.ex || ph, then);
 
 /* ---------- speech recognition + recording ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -226,7 +240,7 @@ function renderTokens() {
       return el('div', { class: 'syl' + (syl.stress ? ' stress' + syl.stress : ''), 'data-k': ti + '-' + si },
         el('div', { class: 'sylhead' },
           el('span', {}, syl.stress === 1 ? '重音' : syl.stress === 2 ? '次重音' : '第 ' + (si + 1) + ' 音節'),
-          el('button', { type: 'button', title: '聽這個音節（近似發音）', onclick: () => speak(C.respell(syl), 0.7) }, '▶')),
+          el('button', { type: 'button', title: '聽這個音節', onclick: () => playSyl(syl) }, '▶')),
         el('div', { class: 'segs' }, segs));
     });
     box.append(el('div', { class: 'token' },
@@ -267,6 +281,7 @@ function renderDetail(play) {
       el('span', { class: 'sym' }, '/' + p + '/'),
       el('span', { class: 'kk' }, 'KK [' + (info.kk || p) + ']'),
       el('p', {}, info.zh),
+      el('button', { class: 'btn', type: 'button', onclick: () => playSound(p) }, '▶ 單音'),
       info.ex ? el('button', { class: 'btn', type: 'button', onclick: () => speak(info.ex, 0.75) }, '▶ 例字 ' + info.ex) : null);
   });
   put(d, el('div', { class: 'detail' },
@@ -277,9 +292,9 @@ function renderDetail(play) {
       parts.map(contrastBlock),
       sameSoundChips(parts[parts.length - 1]),
       el('div', { class: 'controls', style: 'margin-top:12px' },
-        el('button', { class: 'btn', type: 'button', onclick: () => speak(C.respell(syl), 0.7) }, '▶ 所在音節「' + syl.segs.map(g => g.l).join('') + '」'),
+        el('button', { class: 'btn', type: 'button', onclick: () => playSyl(syl) }, '▶ 所在音節「' + syl.segs.map(g => g.l).join('') + '」'),
         el('button', { class: 'btn', type: 'button', onclick: () => speak(current.w, 0.6) }, '▶ 整個（慢）')))));
-  if (play) { const ex = C.PH[parts[0]]?.ex; if (ex) speak(ex, 0.75); }
+  if (play) { const ex = C.PH[parts[0]]?.ex; playSound(parts[0], ex ? () => setTimeout(() => speak(ex, 0.75), 300) : null); }
 }
 
 function playSyllables() {
@@ -289,7 +304,7 @@ function playSyllables() {
     document.querySelectorAll('.syl.playing').forEach(e => e.classList.remove('playing'));
     if (i >= seq.length) { setTimeout(() => speak(current.w, 0.8), 250); return; }
     const it = seq[i++]; document.querySelector(`.syl[data-k="${it.k}"]`)?.classList.add('playing');
-    speak(C.respell(it.syl), 0.7, () => setTimeout(step, 280));
+    playSyl(it.syl, () => setTimeout(step, 280));
   };
   step();
 }
@@ -369,9 +384,9 @@ function nextPair() {
 /* ---------- chart ---------- */
 function renderChart() {
   const c = $('chart'); put(c, );
-  for (const [k, v] of Object.entries(C.PH)) c.append(el('button', { class: 'pc ' + v.t, type: 'button', onclick: () => speak(v.ex, 0.75) },
+  for (const [k, v] of Object.entries(C.PH)) c.append(el('button', { class: 'pc ' + v.t, type: 'button', onclick: () => playSound(k, () => setTimeout(() => speak(v.ex, 0.75), 300)) },
     el('span', { class: 'sym' }, '/' + k + '/' + (v.kk ? '  KK [' + v.kk + ']' : '')),
-    el('span', { class: 'ex' }, '▶ ' + v.ex),
+    el('span', { class: 'ex' }, '▶ 單音＋' + v.ex),
     el('small', {}, v.zh)));
 }
 
