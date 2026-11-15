@@ -48,6 +48,14 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
+          # A token copied from a wrapped terminal line often contains line breaks or spaces.
+          CLAUDE_CODE_OAUTH_TOKEN="$(printf %s "$CLAUDE_CODE_OAUTH_TOKEN" | tr -d '[:space:]')"
+          export CLAUDE_CODE_OAUTH_TOKEN
+          echo "token length ${#CLAUDE_CODE_OAUTH_TOKEN}, prefix ${CLAUDE_CODE_OAUTH_TOKEN:0:13}"
+          case "$CLAUDE_CODE_OAUTH_TOKEN" in
+            sk-ant-oat01-*) ;;
+            *) echo "::error::CLAUDE_CODE_OAUTH_TOKEN 應以 sk-ant-oat01- 開頭，請重新執行 claude setup-token 並更新 secret"; exit 1 ;;
+          esac
           cp public/words.json "$RUNNER_TEMP/words.before.json"
           npm install -g @anthropic-ai/claude-code
           claude -p "$(cat .github/prompts/add-words.md)" \
