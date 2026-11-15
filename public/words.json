@@ -1,0 +1,420 @@
+{
+ "version": 1,
+ "items": [
+  {
+   "w": "health check",
+   "zh": "健康檢查",
+   "tokens": [
+    "ˈh:h ea:ɛ l:l th:θ",
+    "ˈch:tʃ e:ɛ ck:k"
+   ]
+  },
+  {
+   "w": "contact point",
+   "zh": "聯絡點（告警通知要送到哪裡）",
+   "tokens": [
+    "ˈc:k o:ɑ n:n | t:t a:æ c:k t:t",
+    "ˈp:p oi:ɔɪ n:n t:t"
+   ]
+  },
+  {
+   "w": "integration",
+   "zh": "整合；Grafana 聯絡點裡的「傳送方式」",
+   "note": "-tion 固定讀 /ʃən/，重音落在 -tion 前一個音節。",
+   "tokens": [
+    "ˌi:ɪ n:n | t:t e:ə | ˈg:ɡ r:r a:eɪ | t:ʃ io:ə n:n"
+   ]
+  },
+  {
+   "w": "discover",
+   "zh": "發現",
+   "tokens": [
+    "d:d i:ɪ | ˈs:s c:k o:ʌ | v:v er:ɚ"
+   ]
+  },
+  {
+   "w": "explore",
+   "zh": "探索",
+   "note": "字尾 e 不發音。",
+   "tokens": [
+    "e:ɪ x:ks | ˈp:p l:l o:ɔ r:r e:"
+   ]
+  },
+  {
+   "w": "reduce",
+   "zh": "減少；Grafana 的 Reduce 運算（把一串數值歸成一個）",
+   "tokens": [
+    "r:r e:ɪ | ˈd:d u:u c:s e:"
+   ]
+  },
+  {
+   "w": "threshold",
+   "zh": "臨界點；閾值",
+   "note": "th 讀 /θ/，不要讀成ㄙ。拆成 thresh + hold：s 和 h 合起來發 /ʃ/，h 同時也是 hold 開頭的 /h/（有人會省略）。這裡把 h 標在第二音節。",
+   "tokens": [
+    "ˈth:θ r:r e:ɛ s:ʃ | ˌh:h o:oʊ l:l d:d"
+   ]
+  },
+  {
+   "w": "firing",
+   "zh": "觸發中（告警狀態：條件成立，正在發出通知）",
+   "tokens": [
+    "ˈf:f i:aɪ | r:r i:ɪ ng:ŋ"
+   ]
+  },
+  {
+   "w": "fatal",
+   "zh": "致命的（最嚴重的日誌等級）",
+   "tokens": [
+    "ˈf:f a:eɪ | t:t a:ə l:l"
+   ]
+  },
+  {
+   "w": "evaluation interval",
+   "zh": "評估間隔（多久檢查一次規則）",
+   "tokens": [
+    "e:ɪ | ˌv:v a:æ l:l | u:ju | ˈa:eɪ | t:ʃ io:ə n:n",
+    "ˈi:ɪ n:n | t:t er:ɚ | v:v a:ə l:l"
+   ]
+  },
+  {
+   "w": "pending period",
+   "zh": "等待期間（條件要持續多久才轉為 Firing）",
+   "tokens": [
+    "ˈp:p e:ɛ n:n | d:d i:ɪ ng:ŋ",
+    "ˈp:p e:ɪ r:r | i:i | o:ə d:d"
+   ]
+  },
+  {
+   "w": "custom",
+   "zh": "自訂",
+   "tokens": [
+    "ˈc:k u:ʌ s:s | t:t o:ə m:m"
+   ]
+  },
+  {
+   "w": "observability",
+   "zh": "可觀測性",
+   "note": "s 在這裡讀 /z/。重音在 -bil-。",
+   "tokens": [
+    "o:ə b:b | ˌs:z er:ɝ | v:v a:ə | ˈb:b i:ɪ l:l | i:ə | t:t y:i"
+   ]
+  },
+  {
+   "w": "mention",
+   "zh": "提及（@某人）",
+   "tokens": [
+    "ˈm:m e:ɛ n:n | t:ʃ io:ə n:n"
+   ]
+  },
+  {
+   "w": "allowed",
+   "zh": "允許的",
+   "note": "-ed 接在有聲音後讀 /d/，不多一個音節。",
+   "tokens": [
+    "a:ə | ˈll:l ow:aʊ e: d:d"
+   ]
+  },
+  {
+   "w": "channels",
+   "zh": "頻道",
+   "note": "nn 只讀一個 n；-s 在有聲音後讀 /z/。",
+   "tokens": [
+    "ˈch:tʃ a:æ nn:n | e:ə l:l s:z"
+   ]
+  },
+  {
+   "w": "trusted",
+   "zh": "受信任的",
+   "note": "-ed 接在 t、d 後讀 /ɪd/，多一個音節。",
+   "tokens": [
+    "ˈt:t r:r u:ʌ s:s | t:t e:ɪ d:d"
+   ]
+  },
+  {
+   "w": "repeat",
+   "zh": "重複",
+   "tokens": [
+    "r:r e:ɪ | ˈp:p ea:i t:t"
+   ]
+  },
+  {
+   "w": "contact",
+   "zh": "聯絡",
+   "tokens": [
+    "ˈc:k o:ɑ n:n | t:t a:æ c:k t:t"
+   ]
+  },
+  {
+   "w": "PagerDuty",
+   "zh": "PagerDuty（值班告警服務，產品名）",
+   "note": "Pager + Duty 兩個字拼起來。",
+   "tokens": [
+    "ˈP:p a:eɪ | g:dʒ er:ɚ | ˌD:d u:u | t:t y:i"
+   ],
+   "accept": [
+    "pager duty"
+   ]
+  },
+  {
+   "w": "Opsgenie",
+   "zh": "Opsgenie（告警管理服務，產品名）",
+   "note": "Ops + genie（精靈）。",
+   "tokens": [
+    "ˈO:ɑ p:p s:s | g:dʒ e:i | n:n ie:i"
+   ],
+   "accept": [
+    "ops genie"
+   ]
+  },
+  {
+   "w": "resolved",
+   "zh": "已解決（告警恢復正常）",
+   "note": "s 讀 /z/；-ed 讀 /d/。",
+   "tokens": [
+    "r:r e:ɪ | ˈs:z o:ɑ l:l v:v e: d:d"
+   ]
+  },
+  {
+   "w": "catch",
+   "zh": "捕捉（例外）",
+   "note": "tch 合起來讀 /tʃ/。",
+   "tokens": [
+    "ˈc:k a:æ tch:tʃ"
+   ]
+  },
+  {
+   "w": "scan frequency",
+   "zh": "掃描頻率",
+   "note": "qu 讀 /kw/。",
+   "tokens": [
+    "ˈs:s c:k a:æ n:n",
+    "ˈf:f r:r e:i | qu:kw e:ə n:n | c:s y:i"
+   ]
+  },
+  {
+   "w": "under root",
+   "zh": "在根目錄底下",
+   "tokens": [
+    "ˈu:ʌ n:n | d:d er:ɚ",
+    "ˈr:r oo:u t:t"
+   ]
+  },
+  {
+   "w": "annotations",
+   "zh": "註解",
+   "note": "nn 只讀一個 n；-s 讀 /z/。",
+   "tokens": [
+    "ˌa:æ nn:n | o:ə | ˈt:t a:eɪ | t:ʃ io:ə n:n s:z"
+   ]
+  },
+  {
+   "w": "summary",
+   "zh": "摘要",
+   "note": "mm 只讀一個 m。",
+   "tokens": [
+    "ˈs:s u:ʌ mm:m | a:ə | r:r y:i"
+   ]
+  },
+  {
+   "w": "trusted bot",
+   "zh": "受信任的機器人",
+   "tokens": [
+    "ˈt:t r:r u:ʌ s:s | t:t e:ɪ d:d",
+    "ˈb:b o:ɑ t:t"
+   ]
+  },
+  {
+   "w": "queries",
+   "zh": "查詢（複數）",
+   "tokens": [
+    "ˈqu:kw e:ɪ r:r | ie:i s:z"
+   ]
+  },
+  {
+   "w": "exception",
+   "zh": "例外；異常",
+   "note": "x 只讀 /k/，後面的 c 讀 /s/。",
+   "tokens": [
+    "e:ɪ x:k | ˈc:s e:ɛ p:p | t:ʃ io:ə n:n"
+   ]
+  },
+  {
+   "w": "Filebeat",
+   "zh": "Filebeat（日誌收集工具，產品名）",
+   "note": "File + beat。",
+   "tokens": [
+    "ˈF:f i:aɪ l:l e: | ˌb:b ea:i t:t"
+   ],
+   "accept": [
+    "file beat"
+   ]
+  },
+  {
+   "w": "JSON layout",
+   "zh": "JSON 版面格式（日誌以 JSON 輸出）",
+   "note": "J 讀字母名 /dʒeɪ/，JSON 唸起來像人名 Jason。",
+   "tokens": [
+    "ˈJ:dʒeɪ | S:s O:ə N:n",
+    "ˈl:l ay:eɪ | ou:aʊ t:t"
+   ],
+   "accept": [
+    "jason layout"
+   ]
+  },
+  {
+   "w": "write",
+   "zh": "寫入",
+   "note": "開頭 w 和結尾 e 都不發音。",
+   "tokens": [
+    "ˈw: r:r i:aɪ t:t e:"
+   ]
+  },
+  {
+   "w": "critical",
+   "zh": "嚴重的；關鍵的",
+   "tokens": [
+    "ˈc:k r:r i:ɪ | t:t i:ɪ | c:k a:ə l:l"
+   ]
+  },
+  {
+   "w": "level",
+   "zh": "等級",
+   "tokens": [
+    "ˈl:l e:ɛ | v:v e:ə l:l"
+   ]
+  },
+  {
+   "w": "logger",
+   "zh": "記錄器",
+   "note": "gg 只讀一個 /ɡ/。",
+   "tokens": [
+    "ˈl:l o:ɑ gg:ɡ | er:ɚ"
+   ]
+  },
+  {
+   "w": "target",
+   "zh": "目標",
+   "note": "原清單寫成 Taget，正確拼法是 target。g 讀硬音 /ɡ/。",
+   "tokens": [
+    "ˈt:t a:ɑ r:r | g:ɡ e:ɪ t:t"
+   ]
+  },
+  {
+   "w": "timestamp",
+   "zh": "時間戳記",
+   "note": "time + stamp。",
+   "tokens": [
+    "ˈt:t i:aɪ m:m e: | ˌs:s t:t a:æ m:m p:p"
+   ]
+  },
+  {
+   "w": "Lucene query",
+   "zh": "Lucene 查詢語法",
+   "note": "Lucene 重音在第二音節。",
+   "tokens": [
+    "L:l u:u | ˈc:s e:i n:n e:",
+    "ˈqu:kw e:ɪ r:r | y:i"
+   ],
+   "accept": [
+    "lucine query",
+    "lucene query"
+   ]
+  },
+  {
+   "w": "metrics",
+   "zh": "指標",
+   "tokens": [
+    "ˈm:m e:ɛ t:t | r:r i:ɪ c:k s:s"
+   ]
+  },
+  {
+   "w": "bucket aggs",
+   "zh": "分桶聚合（bucketAggs）",
+   "note": "bucketAggs 是 bucket aggregations 的縮寫，Grafana 查 Elasticsearch 時的欄位。",
+   "tokens": [
+    "ˈb:b u:ʌ ck:k | e:ɪ t:t",
+    "ˈa:æ gg:ɡ s:z"
+   ],
+   "accept": [
+    "bucket ags",
+    "bucket eggs"
+   ]
+  },
+  {
+   "w": "terms",
+   "zh": "詞項（依欄位值分組）",
+   "tokens": [
+    "ˈt:t er:ɝ m:m s:z"
+   ]
+  },
+  {
+   "w": "date histogram",
+   "zh": "日期直方圖（依時間分組）",
+   "tokens": [
+    "ˈd:d a:eɪ t:t e:",
+    "ˈh:h i:ɪ s:s | t:t o:ə | ˌg:ɡ r:r a:æ m:m"
+   ]
+  },
+  {
+   "w": "last",
+   "zh": "最後一個（值）",
+   "tokens": [
+    "ˈl:l a:æ s:s t:t"
+   ]
+  },
+  {
+   "w": "auth",
+   "zh": "驗證（authentication 的縮寫）",
+   "tokens": [
+    "ˈau:ɔ th:θ"
+   ]
+  },
+  {
+   "w": "visualization",
+   "zh": "視覺化",
+   "note": "s 在這裡讀 /ʒ/。",
+   "tokens": [
+    "ˌv:v i:ɪ | s:ʒ u:u | a:ə | l:l i:ə | ˈz:z a:eɪ | t:ʃ io:ə n:n"
+   ]
+  },
+  {
+   "w": "histogram",
+   "zh": "直方圖",
+   "tokens": [
+    "ˈh:h i:ɪ s:s | t:t o:ə | ˌg:ɡ r:r a:æ m:m"
+   ]
+  },
+  {
+   "w": "conditions",
+   "zh": "條件",
+   "tokens": [
+    "c:k o:ə n:n | ˈd:d i:ɪ | t:ʃ io:ə n:n s:z"
+   ]
+  },
+  {
+   "w": "is above",
+   "zh": "高於",
+   "note": "is 的 s 讀 /z/，和 above 連起來像 “i-za-bove”。",
+   "tokens": [
+    "ˈi:ɪ s:z",
+    "a:ə | ˈb:b o:ʌ v:v e:"
+   ]
+  },
+  {
+   "w": "strict",
+   "zh": "嚴格的",
+   "note": "str 三個子音連在一起，中間不要加母音。",
+   "tokens": [
+    "ˈs:s t:t r:r i:ɪ c:k t:t"
+   ]
+  },
+  {
+   "w": "evaluation",
+   "zh": "評估",
+   "tokens": [
+    "e:ɪ | ˌv:v a:æ l:l | u:ju | ˈa:eɪ | t:ʃ io:ə n:n"
+   ]
+  }
+ ]
+}

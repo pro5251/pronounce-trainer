@@ -1,0 +1,10 @@
+{
+  "name": "pronounce-trainer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/validate-words.mjs",
+    "test": "node --test",
+    "dev": "npx --yes serve@14.2.4 public"
+  }
+}

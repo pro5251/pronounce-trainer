@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>告警英文發音拆解</title>
+<meta name="description" content="Grafana／監控告警英文的發音拆解與間隔複習：字母對應音標、音節、KK、繁中、念念看檢查。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&family=Gentium+Plus:wght@400;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>告警英文發音拆解</h1>
+      <p class="sub">點字母聽它對應的音，念給它聽確認自己念對，每天只複習到期的項目。</p>
+    </div>
+    <div class="legend" aria-label="顏色說明">
+      <span class="lg"><span class="dot" style="background:var(--vowel)"></span>母音</span>
+      <span class="lg"><span class="dot" style="background:var(--cons)"></span>子音</span>
+      <span class="lg"><span class="dot" style="background:var(--silent)"></span>不發音</span>
+      <span class="lg"><span class="dot" style="border:2px solid var(--accent)"></span>重音節</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <aside class="rail">
+      <div class="today">
+        <h2>今日複習</h2>
+        <div class="bar"><i id="todayBar" style="width:0"></i></div>
+        <div class="txt"><span id="todayTxt">載入中…</span></div>
+        <button class="btn primary" type="button" id="nextBtn">開始 / 下一個 →</button>
+      </div>
+      <h2>詞庫 <span class="count" id="count"></span></h2>
+      <input type="search" id="q" placeholder="搜尋英文或中文…" aria-label="搜尋">
+      <div class="filters" id="filters" role="group" aria-label="篩選">
+        <button type="button" data-f="today" aria-pressed="true">今日</button>
+        <button type="button" data-f="all" aria-pressed="false">全部</button>
+        <button type="button" data-f="flag" aria-pressed="false">★ 需留意</button>
+        <button type="button" data-f="sentence" aria-pressed="false">句子</button>
+        <button type="button" data-f="arch" aria-pressed="false">已封存</button>
+      </div>
+      <div class="list" id="list" role="list"></div>
+      <details class="settings">
+        <summary>設定與備份</summary>
+        <label class="row" for="newPerDay">每天新加入幾個新項目 <input type="number" id="newPerDay" min="0" max="100" step="1"></label>
+        <div class="row">
+          <button class="btn" type="button" id="exportBtn">匯出進度</button>
+          <label class="btn" for="importFile">匯入進度</label>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+        </div>
+        <p class="hint">進度存在這個瀏覽器。換電腦前先匯出，到新電腦再匯入。</p>
+        <p class="status" id="setStatus"></p>
+      </details>
+    </aside>
+
+    <main class="main">
+      <section class="card" id="head"></section>
+      <section class="card">
+        <h2>音節與字母對應</h2>
+        <div class="tokens" id="tokens"></div>
+        <p class="hint">每個方框是一個音節，藍框是重音節。上排是字母，下排是它發的音（IPA）。點任一欄可看發音說明並聽例字。</p>
+      </section>
+      <section class="card">
+        <h2>這個音怎麼發</h2>
+        <div id="detail" style="margin-top:10px"></div>
+      </section>
+      <section class="card">
+        <h2>聽音選字</h2>
+        <div id="quiz" style="margin-top:10px"></div>
+      </section>
+      <section class="card">
+        <h2>易混淆音對比</h2>
+        <div id="pairs" style="margin-top:10px"></div>
+      </section>
+      <section class="card">
+        <h2>音標總表（點卡片聽例字）</h2>
+        <div class="chart" id="chart"></div>
+      </section>
+    </main>
+  </div>
+</div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+# 告警英文發音拆解
+
+Grafana／監控告警用語的發音練習網站。純靜態網站，不需要後端，可以免費部署到 GitLab Pages 或 Cloudflare Pages。
+
+## 功能
+
+- **發音拆解**：每個字拆成音節，標出每組字母對應的音（IPA 與 KK）、重音、不發音字母，附繁體中文說明。
+- **播放**：整個字（正常／慢速）、逐音節播放、點字母聽例字。使用瀏覽器內建語音。
+- **念念看**：用麥克風念，瀏覽器辨識是否念對。念對會自動記為「普通」。句子會標出沒聽到的字。
+- **錄音對照**：錄下自己的聲音，和範例輪流聽。錄音只留在瀏覽器，不會上傳。
+- **間隔複習**：每次複習選「不熟／普通／很熟」，下次分別在 1／約 1.6 倍／約 2.5 倍間隔後出現（最長 180 天）。今天複習過的亮綠燈，隔天自動重置。
+- **★ 需留意**：每天都會出現。**封存**：不再列入複習。
+- **聽音選字測驗**、**易混淆音對比**（θ/s、v/b、ɪ/i、æ/ɛ、n/ŋ、l/r、ʌ/ɑ、ʃ/s）。
+- **單字與句子**都支援。
+
+> 念念看需要 Chrome、Edge 或 Safari，而且要用 HTTPS 網址開啟（GitLab Pages、Cloudflare Pages 都是）。
+> 進度存在瀏覽器的 localStorage。換電腦或換瀏覽器前，請在「設定與備份」匯出進度，到新的地方再匯入。
+
+## 本機執行
+
+```bash
+npm run dev          # 開啟 http://localhost:3000
+# 或
+cd public && python -m http.server 8000
+```
+
+不能直接雙擊 `index.html`，因為頁面要用網路請求讀取 `words.json`。
+
+## 新增單字或句子
+
+編輯 `public/words.json`，在 `items` 裡加一筆：
+
+```json
+{
+  "w": "dashboard",
+  "zh": "儀表板",
+  "note": "（可省略）一句發音提醒",
+  "tokens": ["ˈd:d a:æ sh:ʃ | ˌb:b oa:ɔ r:r d:d"]
+}
+```
+
+`tokens` 的寫法：
+
+| 規則 | 範例 |
+|---|---|
+| 一個英文字一個字串，依序排列（標點不用寫） | `"is above"` → `["ˈi:ɪ s:z", "a:ə \| ˈb:b o:ʌ v:v e:"]` |
+| 音節用 `\|` 分開 | `t:t e:ə \| ˈg:ɡ r:r a:eɪ` |
+| 每段是 `字母:音標`，所有字母都要依序出現 | `th:θ`、`tion` 寫成 `t:ʃ io:ə n:n` |
+| 不發音的字母冒號後留空 | `e:` |
+| 主重音 `ˈ`、次重音 `ˌ` 放在音節開頭 | `ˈp:p ea:i t:t` |
+
+可以用的音標：`i ɪ ɛ æ ɑ ʌ ə ɚ ɝ u ʊ ɔ eɪ oʊ aɪ aʊ ɔɪ p b t d k ɡ f v θ ð s z ʃ ʒ tʃ dʒ m n ŋ l r w h j`
+
+選填欄位：
+- `accept`：語音辨識常聽成的其他寫法，例如產品名 `"accept": ["ops genie"]`。
+- `kind`：`"word"` 或 `"sentence"`。不填的話，四個字以上或以標點結尾會自動當成句子。
+
+寫完先檢查再推上去：
+
+```bash
+npm run check   # 檢查每個字母都有對到、音標都認得、沒有重複
+npm test        # 單元測試（內含 words.json 檢查）
+```
+
+也可以直接請 Claude Code 幫你加：「幫我在 words.json 加 dashboard、silence、mute timing」。
+
+## 部署
+
+以下方式都免費，擇一使用即可。
+
+### GitHub Pages（目前使用中）
+
+Repo：https://github.com/pro5251/pronounce-trainer
+網站：https://pro5251.github.io/pronounce-trainer/
+
+推送到 `main` 後，`.github/workflows/pages.yml` 會先跑檢查和測試，通過才部署。PR 只跑測試，不部署。公開 repo 的 Actions 不計分鐘數。
+
+### A. GitLab Pages
+
+1. 在 GitLab 建一個專案，把這個資料夾推上去：
+   ```bash
+   git init -b main
+   git add .gitignore .gitlab-ci.yml README.md package.json public scripts tests
+   git commit -m "Pronunciation trainer"
+   git remote add origin git@gitlab.com:<你的帳號>/pronounce-trainer.git
+   git push -u origin main
+   ```
+2. `.gitlab-ci.yml` 會先跑檢查和測試，通過才發佈 `public/`。
+3. 網址在專案側邊欄 **Deploy → Pages**，通常是 `https://<你的帳號>.gitlab.io/pronounce-trainer/`。
+4. 私有專案也可以用 Pages。在 **Settings → General → Visibility → Pages** 可以設定只有專案成員能看。
+
+GitLab.com 免費方案每月有 400 分鐘 CI，這個 pipeline 每次約 1 分鐘。
+
+### B. Cloudflare Pages
+
+1. Cloudflare 後台 → **Workers & Pages → Create → Pages → Connect to Git**，選 GitHub 或 GitLab，再選這個 repo。
+2. 設定：
+   - Framework preset：`None`
+   - Build command：`node scripts/validate-words.mjs && node --test`
+   - Build output directory：`public`
+3. 儲存後，每次推送到 main 都會自動部署。網址是 `https://<專案名>.pages.dev`。
+
+不想連 Git 的話，也可以手動上傳：`npx wrangler pages deploy public --project-name pronounce-trainer`（需要先 `npx wrangler login`）。
+
+免費方案每月 500 次建置，流量不限。
+
+## 檔案結構
+
+```
+public/
+  index.html        頁面
+  app.css           樣式
+  words.json        單字與句子資料
+  _headers          Cloudflare 用：words.json 不快取
+  js/core.js        純邏輯：音標、拆解、間隔複習、語音比對（網頁和測試共用）
+  js/app.js         畫面與互動
+scripts/validate-words.mjs   words.json 檢查
+tests/core.test.js           單元測試
+.github/workflows/pages.yml  GitHub Pages 測試與部署
+.gitlab-ci.yml               GitLab Pages 部署（改用 GitLab 時才需要）
+```

@@ -1,0 +1,25 @@
+# GitLab Pages: checks words.json + unit tests, then publishes ./public
+# Site URL after the first successful run: Deploy > Pages in the project sidebar.
+stages: [test, deploy]
+
+default:
+  image: node:22-alpine
+
+test:
+  stage: test
+  script:
+    - node scripts/validate-words.mjs
+    - node --test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+pages:
+  stage: deploy
+  needs: [test]
+  script:
+    - echo "publishing ./public"
+  artifacts:
+    paths: [public]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
