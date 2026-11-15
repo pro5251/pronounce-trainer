@@ -16,6 +16,7 @@
       <h1>告警英文發音拆解</h1>
       <p class="sub">點字母聽它對應的音，念給它聽確認自己念對，每天只複習到期的項目。</p>
     </div>
+    <button class="btn memo-link" type="button" id="memoLink">📝 備忘錄</button>
     <div class="legend" aria-label="顏色說明">
       <span class="lg"><span class="dot" style="background:var(--vowel)"></span>母音</span>
       <span class="lg"><span class="dot" style="background:var(--cons)"></span>子音</span>
@@ -65,6 +66,20 @@
       <section class="card">
         <h2>這個音怎麼發</h2>
         <div id="detail" style="margin-top:10px"></div>
+      </section>
+      <section class="card" id="memo">
+        <h2>陌生單字備忘錄</h2>
+        <form class="memo-form" id="memoForm" autocomplete="off">
+          <input type="text" id="memoText" placeholder="遇到的陌生單字或句子，例如 silence" aria-label="陌生單字或句子" maxlength="200">
+          <input type="text" id="memoNote" placeholder="備註：在哪裡看到、猜的意思（可留空）" aria-label="備註" maxlength="300">
+          <button class="btn primary" type="submit">記下來</button>
+        </form>
+        <div class="memo-tools">
+          <span class="hint" id="memoCount" style="margin:0"></span>
+          <button class="btn" type="button" id="memoCopy">複製待加入清單</button>
+          <span class="status" id="memoStatus"></span>
+        </div>
+        <ul class="memos" id="memoList"></ul>
       </section>
       <section class="card">
         <h2>聽音選字</h2>

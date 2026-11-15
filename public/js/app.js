@@ -5,7 +5,7 @@ const KEY = 'pronounce-trainer-v1';
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { s = {}; }
-  return { prog: s.prog || {}, settings: { newPerDay: 10, rate: 0.9, ...(s.settings || {}) } };
+  return { prog: s.prog || {}, memos: Array.isArray(s.memos) ? s.memos : [], settings: { newPerDay: 10, rate: 0.9, ...(s.settings || {}) } };
 })();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
 const prog = store.prog;
@@ -411,7 +411,7 @@ $('filters').addEventListener('click', e => {
   renderList();
 });
 $('nextBtn').addEventListener('click', goNext);
-window.addEventListener('hashchange', () => { const id = decodeURIComponent(location.hash.slice(1)); if (id && (!current || current.id !== id)) select(id); });
+window.addEventListener('hashchange', () => { const id = decodeURIComponent(location.hash.slice(1)); if (id && items.some(w => w.id === id) && (!current || current.id !== id)) select(id); });
 function checkDay() { const t = C.dayStr(); if (t !== today) { today = t; renderList(); if (current) renderHead(); } }
 setInterval(checkDay, 60000);
 document.addEventListener('visibilitychange', checkDay);
@@ -433,11 +433,60 @@ $('importFile').addEventListener('change', async e => {
     for (const k of Object.keys(prog)) delete prog[k];
     Object.assign(prog, data.prog);
     if (data.settings) Object.assign(store.settings, data.settings);
+    if (Array.isArray(data.memos)) store.memos = data.memos;
     save(); npd.value = store.settings.newPerDay;
-    $('setStatus').textContent = `已匯入 ${Object.keys(prog).length} 筆進度。`;
+    $('setStatus').textContent = `已匯入 ${Object.keys(prog).length} 筆進度、${store.memos.length} 則備忘。`;
+    renderMemos();
     renderList(); if (current) renderHead();
   } catch (err) { $('setStatus').textContent = '匯入失敗：' + err.message; }
   e.target.value = '';
+});
+
+/* ---------- memo pad: unfamiliar words to look up / add later ---------- */
+const inLibrary = text => items.find(w => w.id === C.slug(text));
+let undoMemo = null;
+function renderMemos() {
+  const list = $('memoList'), memos = store.memos;
+  const pending = memos.filter(m => !inLibrary(m.text));
+  $('memoLink').textContent = '📝 備忘錄' + (memos.length ? ` (${memos.length})` : '');
+  $('memoCount').textContent = memos.length ? `共 ${memos.length} 則，${pending.length} 則還不在詞庫` : '';
+  $('memoCopy').hidden = !pending.length;
+  put(list, memos.length ? memos.map(m => {
+    const hit = inLibrary(m.text);
+    return el('li', { class: 'memo' },
+      el('div', { class: 'memo-main' },
+        el('button', { class: 'memo-word', type: 'button', title: '播放', onclick: () => speak(m.text) }, '▶ ' + m.text),
+        m.note ? el('span', { class: 'memo-note' }, m.note) : null),
+      el('div', { class: 'memo-side' },
+        hit ? el('button', { class: 'chip', type: 'button', onclick: () => { select(hit.id); window.scrollTo({ top: 0, behavior: 'smooth' }); } }, '已在詞庫 →')
+            : el('span', { class: 'tag' }, '待加入'),
+        el('span', { class: 'due' }, m.at),
+        el('button', { class: 'memo-del', type: 'button', 'aria-label': '刪除「' + m.text + '」', title: '刪除', onclick: () => delMemo(m.id) }, '✕')));
+  }) : el('li', { class: 'hint', style: 'list-style:none' }, '還沒有記錄。看到不熟的字就記下來，之後整批貼給 Claude 加進詞庫。'));
+}
+function delMemo(id) {
+  const i = store.memos.findIndex(m => m.id === id); if (i < 0) return;
+  undoMemo = { memo: store.memos[i], i };
+  store.memos.splice(i, 1); save(); renderMemos();
+  put($('memoStatus'), '已刪除「' + undoMemo.memo.text + '」 ',
+    el('button', { class: 'chip', type: 'button', onclick: () => { if (!undoMemo) return; store.memos.splice(undoMemo.i, 0, undoMemo.memo); undoMemo = null; save(); renderMemos(); $('memoStatus').textContent = '已復原'; } }, '復原'));
+}
+$('memoLink').addEventListener('click', () => { $('memo').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('memoText').focus({ preventScroll: true }), 400); });
+$('memoForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const text = $('memoText').value.trim().replace(/\s+/g, ' '), note = $('memoNote').value.trim();
+  if (!text) { $('memoText').focus(); return; }
+  if (store.memos.some(m => m.text.toLowerCase() === text.toLowerCase())) { $('memoStatus').textContent = '「' + text + '」已經記過了。'; return; }
+  store.memos.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, note, at: C.dayStr() });
+  save(); $('memoText').value = ''; $('memoNote').value = ''; $('memoText').focus();
+  $('memoStatus').textContent = inLibrary(text) ? '已記下（這個字詞庫裡已經有了）' : '已記下';
+  renderMemos();
+});
+$('memoCopy').addEventListener('click', async () => {
+  const pending = store.memos.filter(m => !inLibrary(m.text));
+  const text = ['幫我把這些加進 words.json：', ...pending.map(m => '- ' + m.text + (m.note ? '（' + m.note + '）' : ''))].join(String.fromCharCode(10));
+  try { await navigator.clipboard.writeText(text); $('memoStatus').textContent = `已複製 ${pending.length} 則，貼給 Claude 即可。`; }
+  catch (err) { put($('memoStatus'), el('textarea', { class: 'memo-copy', rows: '4', readonly: true }, text)); $('memoStatus').querySelector('textarea').select(); }
 });
 
 /* ---------- boot ---------- */
@@ -451,7 +500,7 @@ $('importFile').addEventListener('change', async e => {
     $('head').replaceChildren(el('p', { class: 'warn' }, '讀不到 words.json（' + e.message + '）。請用網站伺服器開啟，不要直接雙擊 HTML 檔，例如執行 npm run dev。'));
     return;
   }
-  renderChart(); renderQuiz(); renderPairs();
+  renderChart(); renderQuiz(); renderPairs(); renderMemos();
   const hid = decodeURIComponent(location.hash.slice(1));
   if (hid && items.some(w => w.id === hid)) select(hid);
   else { const { queue } = queueInfo(); select((queue[0] || items[0]).id); }
