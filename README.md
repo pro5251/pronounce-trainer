@@ -28,6 +28,34 @@ cd public && python -m http.server 8000
 
 ## 新增單字或句子
 
+### 從網站新增（每日自動更新）
+
+1. 在「新增單字／陌生單字備忘錄」輸入單字或句子，馬上就能聽發音（有真人錄音時優先播放）、看音標與機器翻譯。
+2. 按「送到每日更新」，會開啟一個預先填好的 GitHub issue（標籤 `new-word`），按「Create」送出。網站上這些字會標成「待更新」。
+3. 每天台灣時間 19:00，`.github/workflows/daily-words.yml` 會：
+   - 讀取你本人開的、仍開著的 `new-word` issue
+   - 用 Claude Code 依照下面的寫法把每個字完整拆解，加進 `words.json`，並通過檢查
+   - 在 Windows runner 產生音檔、跑測試、commit
+   - 在 issue 留言列出已加入的字並關閉 issue，然後部署網站
+4. 字進了詞庫，網站上的「待更新」就會自動變成「已在詞庫 →」。
+
+**第一次要設定的金鑰**（只需做一次）：在自己電腦執行
+
+```bash
+claude setup-token                                  # 產生 Claude Code 長效 token（用你的 Claude 訂閱額度）
+gh secret set CLAUDE_CODE_OAUTH_TOKEN -R pro5251/pronounce-trainer   # 貼上剛剛的 token
+```
+
+想立刻跑一次、不等排程：`gh workflow run daily-words.yml -R pro5251/pronounce-trainer`，或到 GitHub 的 Actions → Daily new words → Run workflow。
+
+注意：
+- 只處理 repo 擁有者自己開的 issue，別人開的不會被讀取。
+- 沒有待處理的 issue 時，排程大約 10 秒就結束，不會呼叫 Claude。
+- GitHub 的排程可能延遲幾分鐘到一小時；公開 repo 連續 60 天沒有任何 commit，排程會被自動停用，到 Actions 頁面重新啟用即可。
+- 想改時間：修改 `daily-words.yml` 的 `cron`（UTC 時間，台灣時間減 8 小時）。
+
+### 手動新增
+
 編輯 `public/words.json`，在 `items` 裡加一筆：
 
 ```json
@@ -120,5 +148,9 @@ public/
 scripts/validate-words.mjs   words.json 檢查
 tests/core.test.js           單元測試
 .github/workflows/pages.yml  GitHub Pages 測試與部署
+.github/workflows/daily-words.yml  每日排程：new-word issue → Claude 拆解 → 音檔 → 部署
+.github/prompts/add-words.md 每日排程給 Claude 的指示
+scripts/gen-audio.mjs        依 IPA 產生音檔（Windows）
+scripts/diff-words.mjs       列出 words.json 新增了哪些字
 .gitlab-ci.yml               GitLab Pages 部署（改用 GitLab 時才需要）
 ```

@@ -445,24 +445,72 @@ $('importFile').addEventListener('change', async e => {
 /* ---------- memo pad: unfamiliar words to look up / add later ---------- */
 const inLibrary = text => items.find(w => w.id === C.slug(text));
 let undoMemo = null;
+const REPO = 'pro5251/pronounce-trainer';
+const memoState = m => inLibrary(m.text) ? 'lib' : m.sent ? 'sent' : 'new';
+
+/* Instant info for a new word: machine translation (MyMemory) + dictionary IPA and a real recording (dictionaryapi.dev). */
+async function lookupMemo(m) {
+  const get = async url => { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); };
+  const tasks = [
+    get('https://api.mymemory.translated.net/get?langpair=en|zh-TW&q=' + encodeURIComponent(m.text))
+      .then(d => { const t = d?.responseData?.translatedText; if (t && d.responseStatus === 200 && t.toLowerCase() !== m.text.toLowerCase()) m.zh = t; }),
+  ];
+  if (/^[A-Za-z][A-Za-z'-]*$/.test(m.text)) tasks.push(
+    get('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(m.text.toLowerCase())).then(d => {
+      const ph = (d[0]?.phonetics || []).filter(p => p.text || p.audio);
+      const us = ph.find(p => /-us\.\w+$/.test(p.audio || '')) || ph.find(p => p.audio) || ph[0];
+      m.ipa = (us?.text || ph.find(p => p.text)?.text || '').replace(/^\/|\/$/g, '');
+      m.audio = us?.audio || '';
+      m.pos = [...new Set((d[0]?.meanings || []).map(x => x.partOfSpeech))].slice(0, 3).join('、');
+    }));
+  await Promise.allSettled(tasks);
+  m.looked = m.zh || m.ipa ? 'ok' : 'fail';
+  save(); renderMemos();
+}
+function playMemo(m, slow) {
+  if (slow || !m.audio) { speak(m.text, slow ? 0.55 : undefined); return; }
+  stopAll(); const a = new Audio(m.audio); clip = a;
+  a.onerror = () => { if (clip === a) speak(m.text); };
+  a.play().catch(() => { if (clip === a) speak(m.text); });
+}
 function renderMemos() {
   const list = $('memoList'), memos = store.memos;
-  const pending = memos.filter(m => !inLibrary(m.text));
-  $('memoLink').textContent = '📝 備忘錄' + (memos.length ? ` (${memos.length})` : '');
-  $('memoCount').textContent = memos.length ? `共 ${memos.length} 則，${pending.length} 則還不在詞庫` : '';
-  $('memoCopy').hidden = !pending.length;
+  const fresh = memos.filter(m => memoState(m) === 'new'), sent = memos.filter(m => memoState(m) === 'sent');
+  $('memoLink').textContent = '📝 新增／備忘錄' + (memos.length ? ` (${memos.length})` : '');
+  $('memoCount').textContent = memos.length ? `共 ${memos.length} 則：${fresh.length} 則未送出、${sent.length} 則等待每日更新` : '';
+  $('memoSend').hidden = !fresh.length;
+  $('memoSend').textContent = `送到每日更新（${fresh.length}）`;
+  $('memoCopy').hidden = !(fresh.length + sent.length);
   put(list, memos.length ? memos.map(m => {
-    const hit = inLibrary(m.text);
+    const st = memoState(m), hit = inLibrary(m.text);
     return el('li', { class: 'memo' },
       el('div', { class: 'memo-main' },
-        el('button', { class: 'memo-word', type: 'button', title: '播放', onclick: () => speak(m.text) }, '▶ ' + m.text),
-        m.note ? el('span', { class: 'memo-note' }, m.note) : null),
+        el('div', { class: 'memo-head' },
+          el('button', { class: 'memo-word', type: 'button', title: m.audio ? '播放真人錄音' : '播放', onclick: () => playMemo(m) }, '▶ ' + m.text),
+          el('button', { class: 'chip', type: 'button', onclick: () => playMemo(m, true) }, '慢速'),
+          m.ipa ? el('span', { class: 'memo-ipa' }, '/' + m.ipa + '/') : null),
+        m.zh ? el('span', { class: 'memo-zh' }, m.zh, m.pos ? el('small', {}, '　' + m.pos) : null, el('small', {}, '　機器翻譯')) : null,
+        !m.looked ? el('span', { class: 'memo-note' }, '查詢翻譯與音標中…') : null,
+        m.looked === 'fail' ? el('span', { class: 'memo-note' }, '查不到翻譯或音標 ', el('button', { class: 'chip', type: 'button', onclick: () => { delete m.looked; renderMemos(); lookupMemo(m); } }, '重新查詢')) : null,
+        m.note ? el('span', { class: 'memo-note' }, '備註：' + m.note) : null),
       el('div', { class: 'memo-side' },
-        hit ? el('button', { class: 'chip', type: 'button', onclick: () => { select(hit.id); window.scrollTo({ top: 0, behavior: 'smooth' }); } }, '已在詞庫 →')
-            : el('span', { class: 'tag' }, '待加入'),
+        st === 'lib' ? el('button', { class: 'chip', type: 'button', onclick: () => { select(hit.id); window.scrollTo({ top: 0, behavior: 'smooth' }); } }, '已在詞庫 →')
+          : st === 'sent' ? el('span', { class: 'tag pending', title: '已送到 GitHub，每日排程會加入詞庫' }, '待更新')
+          : el('span', { class: 'tag' }, '未送出'),
         el('span', { class: 'due' }, m.at),
         el('button', { class: 'memo-del', type: 'button', 'aria-label': '刪除「' + m.text + '」', title: '刪除', onclick: () => delMemo(m.id) }, '✕')));
-  }) : el('li', { class: 'hint', style: 'list-style:none' }, '還沒有記錄。看到不熟的字就記下來，之後整批貼給 Claude 加進詞庫。'));
+  }) : el('li', { class: 'hint', style: 'list-style:none' }, '還沒有記錄。輸入不熟的字，馬上就能聽發音、看翻譯；按「送到每日更新」後，每天排程會把它完整拆解加進詞庫。'));
+}
+/* Opens a pre-filled GitHub issue (label new-word); the daily workflow turns it into words.json entries. */
+function sendToDaily() {
+  const fresh = store.memos.filter(m => memoState(m) === 'new'); if (!fresh.length) return;
+  const NL = String.fromCharCode(10);
+  const body = ['<!-- 每日排程會讀取下列項目：英文 | 備註 | 機器翻譯 -->', ...fresh.map(m => `- ${m.text} | ${m.note || ''} | ${m.zh || ''}`)].join(NL);
+  const title = '新增單字：' + fresh.map(m => m.text).join(', ').slice(0, 120);
+  const url = `https://github.com/${REPO}/issues/new?labels=new-word&title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  const a = el('a', { href: url, target: '_blank', rel: 'noopener' }); document.body.append(a); a.click(); a.remove();
+  const today = C.dayStr(); fresh.forEach(m => { m.sent = today; }); save(); renderMemos();
+  $('memoStatus').textContent = `已開啟 GitHub 新增 issue 的頁面，請按「Create」送出。送出後 ${fresh.length} 則會在下次每日排程加入詞庫。`;
 }
 function delMemo(id) {
   const i = store.memos.findIndex(m => m.id === id); if (i < 0) return;
@@ -477,11 +525,14 @@ $('memoForm').addEventListener('submit', e => {
   const text = $('memoText').value.trim().replace(/\s+/g, ' '), note = $('memoNote').value.trim();
   if (!text) { $('memoText').focus(); return; }
   if (store.memos.some(m => m.text.toLowerCase() === text.toLowerCase())) { $('memoStatus').textContent = '「' + text + '」已經記過了。'; return; }
-  store.memos.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, note, at: C.dayStr() });
+  const m = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, note, at: C.dayStr() };
+  store.memos.unshift(m);
   save(); $('memoText').value = ''; $('memoNote').value = ''; $('memoText').focus();
-  $('memoStatus').textContent = inLibrary(text) ? '已記下（這個字詞庫裡已經有了）' : '已記下';
+  $('memoStatus').textContent = inLibrary(text) ? '已記下（這個字詞庫裡已經有了）' : '已記下，可以先聽發音、看翻譯';
   renderMemos();
+  if (!inLibrary(text)) lookupMemo(m);
 });
+$('memoSend').addEventListener('click', sendToDaily);
 $('memoCopy').addEventListener('click', async () => {
   const pending = store.memos.filter(m => !inLibrary(m.text));
   const text = ['幫我把這些加進 words.json：', ...pending.map(m => '- ' + m.text + (m.note ? '（' + m.note + '）' : ''))].join(String.fromCharCode(10));
@@ -504,4 +555,5 @@ $('memoCopy').addEventListener('click', async () => {
   const hid = decodeURIComponent(location.hash.slice(1));
   if (hid && items.some(w => w.id === hid)) select(hid);
   else { const { queue } = queueInfo(); select((queue[0] || items[0]).id); }
+  for (const m of store.memos.filter(m => !m.looked && !inLibrary(m.text))) await lookupMemo(m);
 })();

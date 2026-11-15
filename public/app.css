@@ -183,3 +183,8 @@ audio{height:34px;max-width:100%}
 .memo-del{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:.95rem;padding:2px 6px;border-radius:6px}
 .memo-del:hover{color:#c0392b;background:var(--flag-soft)}
 .memo-copy{width:100%;font:inherit;font-size:.82rem;margin-top:6px}
+.memo-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.memo-ipa{font-family:var(--f-ipa);font-size:1.05rem;color:var(--muted)}
+.memo-zh{font-size:.95rem;margin-top:2px}
+.memo-zh small{color:var(--muted);font-size:.72rem}
+.tag.pending{color:var(--flag);border-color:var(--flag)}

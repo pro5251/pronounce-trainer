@@ -16,7 +16,7 @@
       <h1>告警英文發音拆解</h1>
       <p class="sub">點字母聽它對應的音，念給它聽確認自己念對，每天只複習到期的項目。</p>
     </div>
-    <button class="btn memo-link" type="button" id="memoLink">📝 備忘錄</button>
+    <button class="btn memo-link" type="button" id="memoLink">📝 新增／備忘錄</button>
     <div class="legend" aria-label="顏色說明">
       <span class="lg"><span class="dot" style="background:var(--vowel)"></span>母音</span>
       <span class="lg"><span class="dot" style="background:var(--cons)"></span>子音</span>
@@ -68,18 +68,20 @@
         <div id="detail" style="margin-top:10px"></div>
       </section>
       <section class="card" id="memo">
-        <h2>陌生單字備忘錄</h2>
+        <h2>新增單字／陌生單字備忘錄</h2>
         <form class="memo-form" id="memoForm" autocomplete="off">
-          <input type="text" id="memoText" placeholder="遇到的陌生單字或句子，例如 silence" aria-label="陌生單字或句子" maxlength="200">
+          <input type="text" id="memoText" placeholder="新單字或句子，例如 silence" aria-label="陌生單字或句子" maxlength="200">
           <input type="text" id="memoNote" placeholder="備註：在哪裡看到、猜的意思（可留空）" aria-label="備註" maxlength="300">
-          <button class="btn primary" type="submit">記下來</button>
+          <button class="btn primary" type="submit">新增</button>
         </form>
         <div class="memo-tools">
           <span class="hint" id="memoCount" style="margin:0"></span>
-          <button class="btn" type="button" id="memoCopy">複製待加入清單</button>
+          <button class="btn primary" type="button" id="memoSend" hidden>送到每日更新</button>
+          <button class="btn" type="button" id="memoCopy">複製清單給 Claude</button>
           <span class="status" id="memoStatus"></span>
         </div>
         <ul class="memos" id="memoList"></ul>
+        <p class="hint">翻譯來自 MyMemory 機器翻譯；音標與真人錄音來自 Free Dictionary API（錄音為 Wikimedia Commons，CC BY-SA）。查詢時會把單字送到這兩個服務。每天台灣時間 19:00，排程會把「待更新」的字完整拆解（音節、字母對應、Grafana 情境的中文）加進詞庫。</p>
       </section>
       <section class="card">
         <h2>聽音選字</h2>
