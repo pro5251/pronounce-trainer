@@ -439,6 +439,126 @@
    "tokens": [
     "th:ð e:ə"
    ]
+  },
+  {
+   "w": "receiver",
+   "zh": "接收者；收件人（告警通知的接收端）",
+   "note": "ei 讀 /i/，重音在第二音節。",
+   "tokens": [
+    "r:r e:ɪ | ˈc:s ei:i | v:v er:ɚ"
+   ]
+  },
+  {
+   "w": "bucketAggs",
+   "zh": "bucket 聚合（Elasticsearch 的 bucket aggregations，Grafana 查詢設定欄位名稱）",
+   "note": "由 bucket + aggs 兩個字組成；aggs 是 aggregations 的縮寫。",
+   "accept": [
+    "bucket aggs",
+    "buckets aggs"
+   ],
+   "tokens": [
+    "ˈb:b u:ʌ | ck:k e:ɪ t:t | ˌa:æ gg:ɡ s:z"
+   ]
+  },
+  {
+   "w": "secret",
+   "zh": "祕密；機密（如密碼、API 金鑰）",
+   "note": "重音在第一音節，e 讀 /i/。",
+   "tokens": [
+    "ˈs:s e:i | c:k r:r e:ɪ t:t"
+   ]
+  },
+  {
+   "w": "track",
+   "zh": "追蹤；曲目",
+   "tokens": [
+    "ˈt:t r:r a:æ ck:k"
+   ]
+  },
+  {
+   "w": "Incorrect function",
+   "zh": "不正確的函式（功能）",
+   "note": "incorrect 重音在 -rect；function 的 -tion 讀 /ʃən/。",
+   "tokens": [
+    "ˌi:ɪ n:n | c:k o:ə | ˈrr:r e:ɛ c:k t:t",
+    "ˈf:f u:ʌ n:ŋ c:k | t:ʃ io:ə n:n"
+   ]
+  },
+  {
+   "w": "set it up",
+   "zh": "設定好；架設起來",
+   "note": "三個字連在一起讀，t 輕輕帶過，聽起來像「sɛ-dɪ-dʌp」。",
+   "tokens": [
+    "ˈs:s e:ɛ t:t",
+    "i:ɪ t:t",
+    "ˈu:ʌ p:p"
+   ]
+  },
+  {
+   "w": "link a remote repo to sync other machines",
+   "zh": "連結遠端儲存庫，以同步其他電腦",
+   "note": "a、to 在句中弱讀成 /ə/；machines 的 ch 讀 /ʃ/，e 不發音；other 的 th 讀有聲 /ð/。",
+   "tokens": [
+    "ˈl:l i:ɪ n:ŋ k:k",
+    "a:ə",
+    "r:r e:ɪ | ˈm:m o:oʊ t:t e:",
+    "ˈr:r e:i | p:p o:oʊ",
+    "t:t o:ə",
+    "ˈs:s y:ɪ n:ŋ c:k",
+    "ˈo:ʌ | th:ð er:ɚ",
+    "m:m a:ə | ˈch:ʃ i:i n:n e: s:z"
+   ]
+  },
+  {
+   "w": "everywhere",
+   "zh": "到處；任何地方",
+   "note": "中間 e 不發音，讀起來像 EV-ree-wair。",
+   "tokens": [
+    "ˈe:ɛ v:v | e: r:r y:i | ˌw:w h: e:ɛ r:r e:"
+   ]
+  },
+  {
+   "w": "existing",
+   "zh": "現有的；既有的",
+   "note": "x 在這裡讀 /ɡz/，重音在第二音節。",
+   "tokens": [
+    "e:ɪ x:ɡz | ˈi:ɪ s:s | t:t i:ɪ ng:ŋ"
+   ]
+  },
+  {
+   "w": "skillshare",
+   "zh": "技能分享（Skillshare 為線上學習平台）",
+   "note": "由 skill + share 組成，字尾 e 不發音。",
+   "accept": [
+    "skill share"
+   ],
+   "tokens": [
+    "ˈs:s k:k i:ɪ ll:l | ˌsh:ʃ a:ɛ r:r e:"
+   ]
+  },
+  {
+   "w": "machine",
+   "zh": "機器",
+   "note": "ch 讀 /ʃ/（像 sh），重音在第二音節，字尾 e 不發音。",
+   "tokens": [
+    "m:m a:ə | ˈch:ʃ i:i n:n e:"
+   ]
+  },
+  {
+   "w": "Tell",
+   "zh": "告訴；說",
+   "note": "ll 只發一個 /l/，舌尖頂上齒背收尾。",
+   "tokens": [
+    "ˈT:t e:ɛ ll:l"
+   ]
+  },
+  {
+   "w": "gallery",
+   "zh": "畫廊；圖庫（Grafana 的儀表板範例庫）",
+   "note": "重音在第一音節，中間 e 弱讀成 /ə/。",
+   "tokens": [
+    "ˈg:ɡ a:æ ll:l | e:ə r:r y:i"
+   ]
   }
  ]
 }
