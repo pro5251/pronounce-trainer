@@ -559,6 +559,30 @@
    "tokens": [
     "ˈg:ɡ a:æ ll:l | e:ə r:r y:i"
    ]
+  },
+  {
+   "w": "Extension",
+   "zh": "擴充；擴充功能",
+   "note": "-sion 在這裡讀 /ʃən/，重音在第二音節 ten。",
+   "tokens": [
+    "e:ɪ x:ks | ˈt:t e:ɛ n:n | s:ʃ io:ə n:n"
+   ]
+  },
+  {
+   "w": "policies",
+   "zh": "政策；規則（如告警通知政策 notification policies）",
+   "note": "重音在第一音節，字尾 -ies 讀 /iz/，其中 e 不發音。",
+   "tokens": [
+    "ˈp:p o:ɑ | l:l i:ə | c:s i:i e: s:z"
+   ]
+  },
+  {
+   "w": "Policy",
+   "zh": "政策；規則（如告警通知政策）",
+   "note": "重音在第一音節，字尾 y 讀 /i/。",
+   "tokens": [
+    "ˈp:p o:ɑ | l:l i:ə | c:s y:i"
+   ]
   }
  ]
 }
