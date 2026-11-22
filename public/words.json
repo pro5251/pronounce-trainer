@@ -583,6 +583,66 @@
    "tokens": [
     "ˈp:p o:ɑ | l:l i:ə | c:s y:i"
    ]
+  },
+  {
+   "w": "once",
+   "zh": "一旦；一次",
+   "note": "o 讀 /wʌ/，開頭帶 w 的音；字尾 ce 讀 /s/。",
+   "tokens": [
+    "ˈo:wʌ n:n c:s e:"
+   ]
+  },
+  {
+   "w": "it",
+   "zh": "它",
+   "tokens": [
+    "ˈi:ɪ t:t"
+   ]
+  },
+  {
+   "w": "do you plan to install it?",
+   "zh": "您打算安裝嗎？",
+   "note": "to 弱讀成 /tə/；install 重音在第二音節；install it 連在一起讀。",
+   "tokens": [
+    "ˈd:d o:u",
+    "ˈy:j ou:u",
+    "ˈp:p l:l a:æ n:n",
+    "t:t o:ə",
+    "i:ɪ n:n | ˈs:s t:t a:ɔ ll:l",
+    "ˈi:ɪ t:t"
+   ]
+  },
+  {
+   "w": "installed",
+   "zh": "已安裝",
+   "note": "重音在第二音節；-ed 在 /l/ 後讀 /d/，不另加音節。",
+   "tokens": [
+    "i:ɪ n:n | ˈs:s t:t a:ɔ ll:l e: d:d"
+   ]
+  },
+  {
+   "w": "these",
+   "zh": "這些",
+   "note": "th 讀有聲的 /ð/，舌尖輕咬；字尾 se 讀 /z/，e 不發音。",
+   "tokens": [
+    "ˈth:ð e:i s:z e:"
+   ]
+  },
+  {
+   "w": "then",
+   "zh": "然後；那麼",
+   "note": "th 讀有聲的 /ð/，舌尖輕咬。",
+   "tokens": [
+    "ˈth:ð e:ɛ n:n"
+   ]
+  },
+  {
+   "w": "Harness",
+   "zh": "線束；馬具（也指把工具組合起來使用，如 test harness 測試框架）",
+   "note": "重音在第一音節，第二音節 e 弱讀成 /ɪ/。",
+   "tokens": [
+    "ˈh:h a:ɑ r:r | n:n e:ɪ ss:s"
+   ]
   }
  ]
 }
