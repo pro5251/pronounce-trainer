@@ -540,6 +540,65 @@ $('memoCopy').addEventListener('click', async () => {
   catch (err) { put($('memoStatus'), el('textarea', { class: 'memo-copy', rows: '4', readonly: true }, text)); $('memoStatus').querySelector('textarea').select(); }
 });
 
+/* ---------- words from an image: in-browser OCR, the image never leaves the device ---------- */
+const TESSERACT = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
+const hasMemo = w => store.memos.some(m => m.text.toLowerCase() === w.toLowerCase());
+async function runOcr(file) {
+  const box = $('ocrBox'); box.hidden = false;
+  const status = el('p', { class: 'hint', 'aria-live': 'polite' }, '載入辨識程式中…（第一次約需下載 4–5 MB）');
+  put(box, status);
+  let worker;
+  try {
+    const { default: T } = await import(TESSERACT);
+    worker = await T.createWorker('eng', 1, {
+      logger: l => { if (l.status === 'recognizing text') status.textContent = `辨識中… ${Math.round(l.progress * 100)}%`; },
+    });
+    status.textContent = '辨識中…';
+    const { data } = await worker.recognize(file);
+    const all = C.extractWords(data.text);
+    const cands = all.filter(w => !inLibrary(w) && !hasMemo(w));
+    renderOcr(cands, all.length - cands.length);
+  } catch (e) {
+    put(box, el('p', { class: 'warn' }, '辨識失敗（' + (e && e.message || e) + '）。請確認有連上網路，再選一次圖片。'), ocrClose());
+  } finally {
+    if (worker) worker.terminate();
+  }
+}
+const ocrClose = () => el('button', { class: 'chip', type: 'button', onclick: () => { $('ocrBox').hidden = true; } }, '關閉');
+function renderOcr(cands, hidden) {
+  const box = $('ocrBox');
+  const info = hidden ? `（詞庫或備忘錄已有的 ${hidden} 個已隱藏）` : '';
+  if (!cands.length) { put(box, el('p', { class: 'hint' }, '沒有找到新的英文字' + info + '。'), ocrClose()); return; }
+  const boxes = cands.map(w => el('input', { type: 'checkbox', value: w }));
+  const add = el('button', { class: 'btn primary', type: 'button' }, '加入備忘錄（0）');
+  const sync = () => { const n = boxes.filter(b => b.checked).length; add.textContent = `加入備忘錄（${n}）`; add.disabled = !n; };
+  const setAll = v => { boxes.forEach(b => { b.checked = v; }); sync(); };
+  boxes.forEach(b => b.addEventListener('change', sync));
+  add.addEventListener('click', () => {
+    const picked = boxes.filter(b => b.checked).map(b => b.value).filter(w => !hasMemo(w));
+    const at = C.dayStr();
+    const added = picked.map(text => ({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, note: '來自圖片', at }));
+    store.memos.unshift(...added);
+    save(); renderMemos();
+    box.hidden = true;
+    $('memoStatus').textContent = `已從圖片加入 ${added.length} 個字，正在查翻譯與音標。`;
+    (async () => { for (const m of added) await lookupMemo(m); })();
+  });
+  sync();
+  put(box,
+    el('p', { class: 'hint', style: 'margin:0' }, `找到 ${cands.length} 個新字${info}，勾選要加入的：`),
+    el('div', { class: 'ocr-words' }, cands.map((w, i) => el('label', { class: 'ocr-word' }, boxes[i], w))),
+    el('div', { class: 'memo-tools' },
+      el('button', { class: 'chip', type: 'button', onclick: () => setAll(true) }, '全選'),
+      el('button', { class: 'chip', type: 'button', onclick: () => setAll(false) }, '全不選'),
+      add, ocrClose()));
+}
+$('ocrFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (f) runOcr(f);
+});
+
 /* ---------- boot ---------- */
 (async () => {
   try {

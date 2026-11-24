@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   validateEntry, makeItem, ipaOf, respell, parseToken, checkSpeech,
-  grade, isDue, buildQueue, addDays, daysBetween,
+  grade, isDue, buildQueue, addDays, daysBetween, extractWords,
 } from '../public/js/core.js';
 
 const words = JSON.parse(fs.readFileSync(new URL('../public/words.json', import.meta.url), 'utf8')).items;
@@ -90,4 +90,15 @@ test('every syllable and sound has a generated audio file', async () => {
   const { allAudioIpas, audioPath } = await import('../public/js/core.js');
   const missing = allAudioIpas(words).filter(ipa => !fs.existsSync(new URL('../public/' + audioPath(ipa), import.meta.url)));
   assert.deepEqual(missing, [], '缺少音檔，請在 Windows 執行 node scripts/gen-audio.mjs');
+});
+
+test('extractWords pulls clean words from OCR text', () => {
+  assert.deepEqual(
+    extractWords('Alert firing, CPU 95% on host-01.prod.local\nFiring "threshold" don\'t read-only a x=1 https://x.io/a'),
+    ['alert', 'firing', 'CPU', 'on', 'threshold', "don't", 'read-only']);
+  assert.deepEqual(extractWords('Pending… (evaluation) — don’t'), ['pending', 'evaluation', "don't"]);
+  assert.deepEqual(extractWords('[FIRING:1] Summary: latency exceeded. HighLatency KubePodCrashLooping'),
+    ['FIRING', 'summary', 'latency', 'exceeded', 'high', 'kube', 'pod', 'crash', 'looping']);
+  assert.deepEqual(extractWords(''), []);
+  assert.deepEqual(extractWords('123 4.5 = /'), []);
 });

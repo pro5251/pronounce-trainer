@@ -188,3 +188,9 @@ audio{height:34px;max-width:100%}
 .memo-zh{font-size:.95rem;margin-top:2px}
 .memo-zh small{color:var(--muted);font-size:.72rem}
 .tag.pending{color:var(--flag);border-color:var(--flag)}
+.ocr-pick{cursor:pointer}
+.ocr{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px}
+.ocr-words{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ocr-word{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 12px 4px 8px;cursor:pointer;font-family:var(--f-display)}
+.ocr-word:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.ocr-word input{margin:0;width:18px;height:18px}

@@ -246,3 +246,22 @@ export function buildQueue(items, prog, today, newPerDay){
   const fresh=active.filter(it=>!seen(prog[it.id])).slice(0,Math.max(0,newPerDay-introducedToday));
   return {queue:reviews.concat(fresh), done, active};
 }
+
+/* Words worth looking up in OCR'd text, in order of appearance, deduplicated case-insensitively.
+   Drops numbers, single letters and anything that looks like a host, URL, path or key=value.
+   CamelCase names such as alert names (HighLatency) are split into their words. */
+export function extractWords(text){
+  const out=[], seen=new Set();
+  for(const raw of String(text||'').replace(/[’‘]/g,"'").split(/\s+/)){
+    const t=raw.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g,'');
+    if(!t || /[0-9./_=:@\\]/.test(t) || !/^[A-Za-z]+(?:['-][A-Za-z]+)*$/.test(t)) continue;
+    const parts=/^[A-Z]+$/.test(t) ? [t] : t.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2').split(' ');
+    for(const p of parts){
+      const w=/^[A-Z]{2,}$/.test(p) ? p : p.toLowerCase(), key=w.toLowerCase();
+      if(w.length<2 || seen.has(key)) continue;
+      seen.add(key);
+      out.push(w);
+    }
+  }
+  return out;
+}

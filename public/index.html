@@ -78,8 +78,10 @@
           <span class="hint" id="memoCount" style="margin:0"></span>
           <button class="btn primary" type="button" id="memoSend" hidden>送到每日更新</button>
           <button class="btn" type="button" id="memoCopy">複製清單給 Claude</button>
+          <label class="btn ocr-pick" id="ocrPick">📷 從圖片找單字<input type="file" accept="image/*" id="ocrFile" hidden></label>
           <span class="status" id="memoStatus"></span>
         </div>
+        <div class="ocr" id="ocrBox" hidden></div>
         <ul class="memos" id="memoList"></ul>
         <p class="hint">翻譯來自 MyMemory 機器翻譯；音標與真人錄音來自 Free Dictionary API（錄音為 Wikimedia Commons，CC BY-SA）。查詢時會把單字送到這兩個服務。每天台灣時間 19:00，排程會把「待更新」的字完整拆解（音節、字母對應、Grafana 情境的中文）加進詞庫。</p>
       </section>
