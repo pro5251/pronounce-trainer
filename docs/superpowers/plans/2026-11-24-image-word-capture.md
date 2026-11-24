@@ -30,19 +30,19 @@
 
 **Interfaces:** Produces `extractWords(text: string) => string[]`（依出現順序、以小寫去重；全大寫且長度 ≥ 2 的字保留原樣，其餘轉小寫）
 
-- [ ] 測試 `extractWords pulls clean words from OCR text`：
+- [x] 測試 `extractWords pulls clean words from OCR text`：
   - `extractWords('Alert firing, CPU 95% on host-01.prod.local\nFiring "threshold" don\'t read-only a x=1 https://x.io/a')` 等於 `['alert','firing','CPU','on',"don't",'read-only']`
   - `extractWords('')` 等於 `[]`
-- [ ] 跑測試，確認失敗
-- [ ] 實作：先依空白切開；整串含 `[./_=:@\\]` 或數字就略過；去掉頭尾非字母；剩下的必須符合 `/^[A-Za-z]+(?:['’-][A-Za-z]+)*$/` 而且長度 ≥ 2；`’` 正規化成 `'`
-- [ ] 跑 `npm test`，確認通過
+- [x] 跑測試，確認失敗
+- [x] 實作：先依空白切開；整串含 `[./_=:@\\]` 或數字就略過；去掉頭尾非字母；剩下的必須符合 `/^[A-Za-z]+(?:['’-][A-Za-z]+)*$/` 而且長度 ≥ 2；`’` 正規化成 `'`
+- [x] 跑 `npm test`，確認通過
 
 ### Task 2: 圖片按鈕與勾選清單
 
 **Files:** Modify `public/index.html`（memo-tools 加 file input 和按鈕，加 `<div id="ocrBox">`）、`public/js/app.js`、`public/app.css`、`README.md`（功能清單＋流程）
 
-- [ ] 用 label 包住 `<input type="file" accept="image/*" id="ocrFile" hidden>`，顯示「📷 從圖片找單字」
-- [ ] `app.js`：`runOcr(file)`：動態 import → `createWorker('eng', 1, { logger })` 顯示進度 → `recognize` → `terminate`；`extractWords` 後過濾 `inLibrary` 和已有備忘錄；`renderOcr(cands, hidden)` 顯示勾選方塊、全選、全不選、「加入備忘錄（n）」、關閉
-- [ ] 加入時依原順序 unshift，`note:'來自圖片'`，並對每個字呼叫 `lookupMemo`
-- [ ] 用瀏覽器實測：載入一張合成的英文圖片，確認出現候選字，勾選加入後出現在備忘錄
-- [ ] `npm run check && npm test`，commit，push，確認 Pages 部署成功
+- [x] 用 label 包住 `<input type="file" accept="image/*" id="ocrFile" hidden>`，顯示「📷 從圖片找單字」
+- [x] `app.js`：`runOcr(file)`：動態 import → `createWorker('eng', 1, { logger })` 顯示進度 → `recognize` → `terminate`；`extractWords` 後過濾 `inLibrary` 和已有備忘錄；`renderOcr(cands, hidden)` 顯示勾選方塊、全選、全不選、「加入備忘錄（n）」、關閉
+- [x] 加入時依原順序 unshift，`note:'來自圖片'`，並對每個字呼叫 `lookupMemo`
+- [x] 用瀏覽器實測：載入一張合成的英文圖片，確認出現候選字，勾選加入後出現在備忘錄
+- [x] `npm run check && npm test`，commit，push，確認 Pages 部署成功
