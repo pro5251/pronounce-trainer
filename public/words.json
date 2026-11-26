@@ -643,6 +643,129 @@
    "tokens": [
     "ˈh:h a:ɑ r:r | n:n e:ɪ ss:s"
    ]
+  },
+  {
+   "w": "Dismiss",
+   "zh": "關閉；忽略（例如關掉通知視窗）",
+   "note": "重音在第二音節；字尾 -ss 讀 /s/。",
+   "tokens": [
+    "d:d i:ɪ s:s | ˈm:m i:ɪ ss:s"
+   ]
+  },
+  {
+   "w": "Understood",
+   "zh": "了解；明白",
+   "note": "最後的 oo 讀短 /ʊ/，和 good 一樣；重音在 -stood。",
+   "tokens": [
+    "ˌu:ʌ n:n | d:d er:ɚ | ˈs:s t:t oo:ʊ d:d"
+   ]
+  },
+  {
+   "w": "starvation",
+   "zh": "飢餓；資源匱乏（系統中指執行緒或程序長期拿不到資源）",
+   "note": "重音在 -va-；-tion 讀 /ʃən/。",
+   "tokens": [
+    "s:s t:t a:ɑ r:r | ˈv:v a:eɪ | t:ʃ io:ə n:n"
+   ]
+  },
+  {
+   "w": "thread",
+   "zh": "討論串；執行緒（程式中的執行流程）",
+   "note": "th 讀無聲 /θ/；ea 讀短 /ɛ/，和 red 同音。",
+   "tokens": [
+    "ˈth:θ r:r ea:ɛ d:d"
+   ]
+  },
+  {
+   "w": "continue",
+   "zh": "繼續",
+   "note": "重音在第二音節；字尾 e 不發音。",
+   "tokens": [
+    "c:k o:ə n:n | ˈt:t i:ɪ n:n | u:ju e:"
+   ]
+  },
+  {
+   "w": "Enchanting",
+   "zh": "迷人的",
+   "note": "重音在第二音節；ch 讀 /tʃ/。",
+   "tokens": [
+    "e:ɛ n:n | ˈch:tʃ a:æ n:n | t:t i:ɪ ng:ŋ"
+   ]
+  },
+  {
+   "w": "Explored",
+   "zh": "已探索",
+   "note": "重音在第二音節；-ed 在 /r/ 後讀 /d/，不另加音節。",
+   "tokens": [
+    "e:ɪ x:ks | ˈp:p l:l o:ɔ r:r e: d:d"
+   ]
+  },
+  {
+   "w": "That’s all we know.",
+   "zh": "我們只知道這些。",
+   "note": "That’s 的 th 讀有聲 /ð/，’s 讀 /s/；know 的 k 不發音。",
+   "tokens": [
+    "ˈth:ð a:æ t:t s:s",
+    "ˈa:ɔ ll:l",
+    "ˈw:w e:i",
+    "ˈk: n:n o:oʊ w:"
+   ]
+  },
+  {
+   "w": "It should not be retried.",
+   "zh": "不應重試。",
+   "note": "should 的 l 不發音；retried 重音在 -tried，-ed 讀 /d/；It should 連在一起讀。",
+   "tokens": [
+    "ˈi:ɪ t:t",
+    "ˈsh:ʃ ou:ʊ l: d:d",
+    "ˈn:n o:ɑ t:t",
+    "b:b e:i",
+    "r:r e:i | ˈt:t r:r ie:aɪ d:d"
+   ]
+  },
+  {
+   "w": "The server cannot process the request because it is malformed.",
+   "zh": "伺服器無法處理此請求，因為其格式不正確。",
+   "note": "The 弱讀成 /ðə/；cannot 重音在第一音節；because 的 -se 讀 /z/；malformed 的 -ed 讀 /d/，不另加音節。",
+   "tokens": [
+    "th:ð e:ə",
+    "ˈs:s er:ɝ | v:v er:ɚ",
+    "ˈc:k a:æ nn:n | o:ɑ t:t",
+    "ˈp:p r:r o:ɑ | c:s e:ɛ ss:s",
+    "th:ð e:ə",
+    "r:r e:ɪ | ˈq:k u:w e:ɛ s:s t:t",
+    "b:b e:ɪ | ˈc:k au:ɔ s:z e:",
+    "i:ɪ t:t",
+    "i:ɪ s:z",
+    "m:m a:æ l:l | ˈf:f o:ɔ r:r m:m e: d:d"
+   ]
+  },
+  {
+   "w": "cannot load library unit",
+   "zh": "無法載入程式庫單元",
+   "note": "library 重音在第一音節，注意中間的 r；unit 開頭 u 讀 /ju/。",
+   "tokens": [
+    "ˈc:k a:æ nn:n | o:ɑ t:t",
+    "ˈl:l oa:oʊ d:d",
+    "ˈl:l i:aɪ | b:b r:r a:ɛ | r:r y:i",
+    "ˈu:ju | n:n i:ɪ t:t"
+   ]
+  },
+  {
+   "w": "manager",
+   "zh": "管理員；經理",
+   "note": "重音在第一音節；g 讀 /dʒ/。",
+   "tokens": [
+    "ˈm:m a:æ | n:n a:ɪ | g:dʒ er:ɚ"
+   ]
+  },
+  {
+   "w": "credential",
+   "zh": "認證；憑證（帳號密碼、API 金鑰等）",
+   "note": "重音在第二音節；-tial 讀 /ʃəl/。",
+   "tokens": [
+    "c:k r:r e:ɪ | ˈd:d e:ɛ n:n | t:ʃ ia:ə l:l"
+   ]
   }
  ]
 }
