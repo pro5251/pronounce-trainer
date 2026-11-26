@@ -5,7 +5,10 @@ const KEY = 'pronounce-trainer-v1';
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { s = {}; }
-  return { prog: s.prog || {}, memos: Array.isArray(s.memos) ? s.memos : [], settings: { newPerDay: 10, rate: 0.9, ...(s.settings || {}) } };
+  const prog = s.prog || {};
+  let history = s.history && typeof s.history === 'object' ? s.history : null;
+  if (!history) history = Object.keys(prog).length ? C.seedHistoryFromProg(prog) : {};
+  return { prog, history, memos: Array.isArray(s.memos) ? s.memos : [], settings: { newPerDay: 10, rate: 0.9, ...(s.settings || {}) } };
 })();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
 const prog = store.prog;
@@ -121,8 +124,11 @@ async function toggleRecord() {
 
 /* ---------- review ---------- */
 function applyGrade(id, g, advance) {
-  setProg(id, C.grade(prog[id], g, today));
-  renderList(); if (current && current.id === id) renderHead();
+  const next = C.grade(prog[id], g, today);
+  const isNew = next.first === today;
+  store.history = C.recordHistory(store.history, id, g, today, isNew);
+  setProg(id, next);
+  renderList(); if (current && current.id === id) renderHead(); renderStats();
   if (advance && filter === 'today') setTimeout(goNext, 350);
 }
 function queueInfo() { return C.buildQueue(items, prog, today, store.settings.newPerDay); }
@@ -168,10 +174,23 @@ function renderList() {
         p.f ? el('span', { class: 'flag', title: '需留意' }, '★') : null,
         el('span', { class: 'en' }, w.w),
         w.kind === 'sentence' ? el('span', { class: 'tag' }, '句') : null),
-      el('span', { class: 'due' }, rt ? '' : dueLabel(p))));
+      el('span', { class: 'item-meta' },
+        p.n ? el('span', { class: 'rcount', title: `已複習 ${p.n} 次` }, p.n + '次') : null,
+        el('span', { class: 'due' }, rt ? '' : dueLabel(p)))));
   }
   const empty = { today: '今天的都複習完了！', flag: '還沒有標記需留意的項目。', arch: '沒有封存的項目。', sentence: '還沒有句子。在 words.json 加入句子即可。' };
-  if (!list.length) box.append(el('div', { class: 'status' }, q ? '找不到符合的項目。' : (empty[filter] || '找不到符合的項目。')));
+  if (!list.length) {
+    const rawQ = $('q').value.trim();
+    box.append(el('div', { class: 'status' }, q ? '找不到符合的項目。' : (empty[filter] || '找不到符合的項目。')));
+    if (rawQ && /[A-Za-z]/.test(rawQ)) {
+      box.append(el('button', {
+        class: 'btn',
+        type: 'button',
+        style: 'margin-top:6px;width:100%;justify-content:center',
+        onclick: () => openLookup(rawQ)
+      }, `🔍 線上查詢「${rawQ}」`));
+    }
+  }
   $('count').textContent = '· ' + items.length + ' 個';
   const total = done.length + queue.length;
   $('todayBar').style.width = (total ? done.length / total * 100 : 100) + '%';
@@ -211,8 +230,25 @@ function renderHead() {
         label, el('small', {}, preview + ' 天後'));
     }),
     el('button', { class: 'btn' + (p.f ? ' flagged' : ''), type: 'button', 'aria-pressed': p.f ? 'true' : 'false', onclick: () => { setProg(w.id, { ...p, f: !p.f }); renderList(); renderHead(); } }, p.f ? '★ 需留意' : '☆ 需留意'),
-    el('button', { class: 'btn', type: 'button', onclick: () => { setProg(w.id, { ...p, a: !p.a }); renderList(); renderHead(); } }, p.a ? '取消封存' : '封存'),
+    el('button', { class: 'btn', type: 'button', onclick: () => { setProg(w.id, { ...p, a: !p.a }); renderList(); renderHead(); renderStats(); } }, p.a ? '取消封存' : '封存'),
     el('button', { class: 'btn', type: 'button', onclick: goNext }, '下一個 →'));
+
+  const gradeLabel = g => C.GRADES.find(x => x.g === g)?.label || '普通';
+  const wh = C.wordHistory(store.history, w.id);
+  const reviewCount = Math.max(p.n || 0, wh.length);
+  const wordStats = el('div', { class: 'word-stats' },
+    reviewCount
+      ? [
+          el('span', {}, '已複習 ', el('b', {}, reviewCount + ' 次')),
+          typeof p.g === 'number' ? el('span', { class: 'g-badge g' + p.g }, '最近：' + gradeLabel(p.g)) : null,
+          p.first ? el('span', {}, '首次 ' + p.first) : null,
+          p.a ? null : p.f ? el('span', {}, '下次：每天提醒') : p.due ? el('span', {}, '下次：' + (C.daysBetween(today, p.due) <= 0 ? '今天到期' : p.due + '（' + C.daysBetween(today, p.due) + ' 天後）')) : null,
+          wh.length ? el('div', { class: 'word-hist' },
+            el('span', {}, '紀錄：'),
+            wh.slice(0, 6).map(h => el('span', { class: 'g-badge g' + h.g, title: h.day + (h.isNew ? '（新學）' : '') }, h.day.slice(5) + ' ' + gradeLabel(h.g))),
+            wh.length > 6 ? el('span', {}, `…共 ${wh.length} 天`) : null) : null
+        ]
+      : el('span', {}, '尚未複習（新項目）'));
 
   put(head, 
     p.a ? el('p', { class: 'banner' }, '已封存：不列入每日複習，也不會出現在一般清單。') : null,
@@ -221,6 +257,7 @@ function renderHead() {
     el('div', { class: 'trans' },
       el('span', {}, el('b', {}, 'IPA'), '/' + C.ipaOf(w, false) + '/'),
       el('span', {}, el('b', {}, 'KK'), '[' + C.ipaOf(w, true) + ']')),
+    wordStats,
     w.note ? el('p', { class: 'note' }, w.note) : null,
     controls, prRow, grades,
     synth ? null : el('p', { class: 'warn', style: 'margin-top:10px' }, '這個瀏覽器不支援語音合成，請改用 Chrome 或 Edge 開啟。'));
@@ -307,6 +344,159 @@ function playSyllables() {
     playSyl(it.syl, () => setTimeout(step, 280));
   };
   step();
+}
+
+/* ---------- learning statistics & daily history ---------- */
+let statsTab = 'daily', expandedDay = null, showAllDays = false, rankSort = 'most';
+const GRADE_NAMES = ['不熟', '普通', '很熟'];
+
+function heatLevel(n) {
+  if (!n) return '';
+  if (n < 5) return ' lv1';
+  if (n < 10) return ' lv2';
+  if (n < 20) return ' lv3';
+  return ' lv4';
+}
+
+function renderStats() {
+  const box = $('statsBody'); if (!box) return;
+  const st = C.computeStats(items, prog, store.history, today);
+  const byId = new Map(items.map(w => [w.id, w]));
+
+  const statsBtn = $('statsLink');
+  if (statsBtn) statsBtn.textContent = '📊 學習統計' + (st.streak ? ` (${st.streak}天)` : '');
+
+  const kpis = el('div', { class: 'kpi-grid' },
+    el('div', { class: 'kpi' },
+      el('span', { class: 'kpi-lbl' }, '連續學習'),
+      el('span', { class: 'kpi-val' }, st.streak + ' 天'),
+      el('span', { class: 'kpi-sub' }, `最長紀錄 ${st.longestStreak} 天`)),
+    el('div', { class: 'kpi' },
+      el('span', { class: 'kpi-lbl' }, '今日結果'),
+      el('span', { class: 'kpi-val' }, st.todaySummary.total + ' 次'),
+      el('span', { class: 'kpi-sub' }, st.todaySummary.total
+        ? `新學 ${st.todaySummary.isNew} · 很熟 ${st.todaySummary.grades[2]} · 不熟 ${st.todaySummary.grades[0]}`
+        : '今天還沒開始複習')),
+    el('div', { class: 'kpi' },
+      el('span', { class: 'kpi-lbl' }, '累計複習'),
+      el('span', { class: 'kpi-val' }, st.totalReviews + ' 次'),
+      el('span', { class: 'kpi-sub' }, `共學習 ${st.totalDays} 天`)),
+    el('div', { class: 'kpi' },
+      el('span', { class: 'kpi-lbl' }, '已學項目'),
+      el('span', { class: 'kpi-val' }, `${st.learnedCount} / ${st.activeCount}`),
+      el('span', { class: 'kpi-sub' }, `很熟 ${st.mastery[2]} · 普通 ${st.mastery[1]} · 不熟 ${st.mastery[0]}`)));
+
+  const heat = el('div', { class: 'heat-wrap' },
+    el('div', { class: 'heat-head' },
+      el('span', {}, '最近 28 天學習紀錄（點日期看當日明細）'),
+      el('span', {}, `${st.recent28[0].day.slice(5)} ～ ${today.slice(5)}`)),
+    el('div', { class: 'heat-grid' }, st.recent28.map(d => {
+      const sel = expandedDay === d.day;
+      const tip = `${d.day}：${d.count ? `複習 ${d.count} 個（很熟 ${d.grades[2]}、普通 ${d.grades[1]}、不熟 ${d.grades[0]}）` : '無紀錄'}`;
+      return el('button', {
+        type: 'button',
+        class: 'heat-cell' + heatLevel(d.count) + (d.day === today ? ' is-today' : '') + (sel ? ' sel' : ''),
+        title: tip,
+        'aria-label': tip,
+        onclick: () => {
+          statsTab = 'daily';
+          expandedDay = expandedDay === d.day ? null : d.day;
+          renderStats();
+        }
+      }, el('span', { class: 'hc-d' }, d.day.slice(8)), el('span', { class: 'hc-n' }, d.count || '·'));
+    })));
+
+  const tabs = el('div', { class: 'stats-tabs' },
+    el('div', { class: 'chips', style: 'margin:0' },
+      el('button', { class: 'chip', type: 'button', 'aria-pressed': statsTab === 'daily' ? 'true' : 'false', onclick: () => { statsTab = 'daily'; renderStats(); } }, `每日紀錄（${st.days.length}）`),
+      el('button', { class: 'chip', type: 'button', 'aria-pressed': statsTab === 'words' ? 'true' : 'false', onclick: () => { statsTab = 'words'; renderStats(); } }, `單字複習次數（${st.learnedCount}）`)),
+    statsTab === 'words'
+      ? el('div', { class: 'chips', style: 'margin:0' }, [
+          ['most', '複習最多'],
+          ['least', '複習最少'],
+          ['hard', '目前不熟'],
+          ['unseen', '尚未複習'],
+        ].map(([k, lbl]) => el('button', { class: 'chip', type: 'button', 'aria-pressed': rankSort === k ? 'true' : 'false', onclick: () => { rankSort = k; renderStats(); } }, lbl)))
+      : null);
+
+  let body;
+  if (statsTab === 'daily') {
+    if (!st.days.length) {
+      body = el('p', { class: 'hint' }, '還沒有每日學習紀錄。完成單字的「不熟／普通／很熟」評分或「念念看」通過後，就會自動記錄在這裡。');
+    } else {
+      const visibleDays = showAllDays ? st.days : st.days.slice(0, 10);
+      if (expandedDay && !visibleDays.some(d => d.day === expandedDay)) {
+        const match = st.days.find(d => d.day === expandedDay);
+        if (match) visibleDays.push(match);
+      }
+      const list = el('div', { class: 'day-list' }, visibleDays.map(d => {
+        const isOpen = expandedDay === d.day || (expandedDay === null && d.day === today);
+        const dayTag = d.day === today ? '今天' : d.day === C.addDays(today, -1) ? '昨天' : '';
+        return el('div', { class: 'day-row' + (expandedDay === d.day ? ' sel' : '') },
+          el('button', {
+            class: 'day-head', type: 'button', 'aria-expanded': isOpen ? 'true' : 'false',
+            onclick: () => { expandedDay = isOpen ? '' : d.day; renderStats(); }
+          },
+            el('span', { class: 'day-title' },
+              d.day,
+              dayTag ? el('span', { class: 'tag' }, dayTag) : null,
+              el('span', { class: 'count' }, `共 ${d.total} 個`)),
+            el('span', { class: 'day-pills' },
+              d.isNew ? el('span', { class: 'g-badge gnew' }, `新學 ${d.isNew}`) : null,
+              d.grades[2] ? el('span', { class: 'g-badge g2' }, `很熟 ${d.grades[2]}`) : null,
+              d.grades[1] ? el('span', { class: 'g-badge g1' }, `普通 ${d.grades[1]}`) : null,
+              d.grades[0] ? el('span', { class: 'g-badge g0' }, `不熟 ${d.grades[0]}`) : null)),
+          isOpen ? el('div', { class: 'day-items' }, d.items.map(it => {
+            const w = byId.get(it.id);
+            const label = w ? w.w : it.id;
+            return el('button', {
+              class: 'day-word', type: 'button',
+              title: (w ? w.zh + ' · ' : '') + GRADE_NAMES[it.g] + (it.isNew ? '（新學）' : ''),
+              onclick: () => { if (w) { select(w.id); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+            },
+              el('span', { class: 'dot-g g' + it.g }),
+              el('span', {}, label),
+              it.isNew ? el('span', { class: 'g-badge gnew' }, '新') : null);
+          })) : null);
+      }));
+      body = el('div', {},
+        list,
+        st.days.length > 10 ? el('button', { class: 'btn', type: 'button', style: 'margin-top:10px', onclick: () => { showAllDays = !showAllDays; renderStats(); } }, showAllDays ? '收合舊紀錄' : `顯示全部 ${st.days.length} 天紀錄`) : null);
+    }
+  } else {
+    const active = items.filter(w => !P(w.id).a);
+    let rows = active.map(w => {
+      const p = P(w.id);
+      const n = Math.max(p.n || 0, C.wordHistory(store.history, w.id).length);
+      return { w, p, n };
+    });
+    if (rankSort === 'unseen') {
+      rows = rows.filter(r => r.n === 0);
+    } else if (rankSort === 'hard') {
+      rows = rows.filter(r => r.n > 0 && r.p.g === 0).sort((a, b) => b.n - a.n || a.w.w.localeCompare(b.w.w));
+    } else if (rankSort === 'least') {
+      rows = rows.filter(r => r.n > 0).sort((a, b) => a.n - b.n || (a.p.last || '').localeCompare(b.p.last || ''));
+    } else {
+      rows = rows.filter(r => r.n > 0).sort((a, b) => b.n - a.n || (b.p.last || '').localeCompare(a.p.last || ''));
+    }
+    if (!rows.length) {
+      body = el('p', { class: 'hint' }, rankSort === 'unseen' ? '全部項目都複習過了！' : rankSort === 'hard' ? '目前沒有標為「不熟」的項目。' : '還沒有已複習的項目。');
+    } else {
+      body = el('div', { class: 'rank-list' }, rows.slice(0, 40).map(({ w, p, n }) => el('button', {
+        class: 'rank-row', type: 'button',
+        onclick: () => { select(w.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      },
+        el('span', { class: 'rank-main' },
+          el('span', { class: 'en' }, w.w),
+          el('span', { class: 'zh' }, w.zh)),
+        el('span', { class: 'rank-side' },
+          n ? el('span', { class: 'g-badge g' + (typeof p.g === 'number' ? p.g : 1) }, GRADE_NAMES[typeof p.g === 'number' ? p.g : 1]) : null,
+          el('span', { class: 'rank-n' }, n + ' 次'),
+          p.last ? el('span', {}, '上次 ' + p.last.slice(5)) : el('span', {}, '尚未複習')))));
+    }
+  }
+
+  put(box, kpis, heat, tabs, body);
 }
 
 /* ---------- listening quiz ---------- */
@@ -412,7 +602,7 @@ $('filters').addEventListener('click', e => {
 });
 $('nextBtn').addEventListener('click', goNext);
 window.addEventListener('hashchange', () => { const id = decodeURIComponent(location.hash.slice(1)); if (id && items.some(w => w.id === id) && (!current || current.id !== id)) select(id); });
-function checkDay() { const t = C.dayStr(); if (t !== today) { today = t; renderList(); if (current) renderHead(); } }
+function checkDay() { const t = C.dayStr(); if (t !== today) { today = t; renderList(); if (current) renderHead(); renderStats(); } }
 setInterval(checkDay, 60000);
 document.addEventListener('visibilitychange', checkDay);
 
@@ -432,12 +622,14 @@ $('importFile').addEventListener('change', async e => {
     if (!data || typeof data.prog !== 'object') throw new Error('不是這個網站匯出的進度檔');
     for (const k of Object.keys(prog)) delete prog[k];
     Object.assign(prog, data.prog);
+    store.history = data.history && typeof data.history === 'object' ? data.history : C.seedHistoryFromProg(prog);
     if (data.settings) Object.assign(store.settings, data.settings);
     if (Array.isArray(data.memos)) store.memos = data.memos;
     save(); npd.value = store.settings.newPerDay;
-    $('setStatus').textContent = `已匯入 ${Object.keys(prog).length} 筆進度、${store.memos.length} 則備忘。`;
+    const histDays = Object.keys(store.history).length;
+    $('setStatus').textContent = `已匯入 ${Object.keys(prog).length} 筆進度、${histDays} 天紀錄、${store.memos.length} 則備忘。`;
     renderMemos();
-    renderList(); if (current) renderHead();
+    renderList(); if (current) renderHead(); renderStats();
   } catch (err) { $('setStatus').textContent = '匯入失敗：' + err.message; }
   e.target.value = '';
 });
@@ -448,25 +640,138 @@ let undoMemo = null;
 const REPO = 'pro5251/pronounce-trainer';
 const memoState = m => inLibrary(m.text) ? 'lib' : m.sent ? 'sent' : 'new';
 
-/* Instant info for a new word: machine translation (MyMemory) + dictionary IPA and a real recording (dictionaryapi.dev). */
-async function lookupMemo(m) {
+/* Instant info for a new word: machine translation (MyMemory) + dictionary IPA, definitions, examples, and a real recording (dictionaryapi.dev). */
+async function fetchWordInfo(text) {
   const get = async url => { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); };
+  const info = { zh: '', ipa: '', audio: '', pos: '', meanings: [] };
   const tasks = [
-    get('https://api.mymemory.translated.net/get?langpair=en|zh-TW&q=' + encodeURIComponent(m.text))
-      .then(d => { const t = d?.responseData?.translatedText; if (t && d.responseStatus === 200 && t.toLowerCase() !== m.text.toLowerCase()) m.zh = t; }),
+    get('https://api.mymemory.translated.net/get?langpair=en|zh-TW&q=' + encodeURIComponent(text))
+      .then(d => { const t = d?.responseData?.translatedText; if (t && d.responseStatus === 200 && t.toLowerCase() !== text.toLowerCase()) info.zh = t; }),
   ];
-  if (/^[A-Za-z][A-Za-z'-]*$/.test(m.text)) tasks.push(
-    get('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(m.text.toLowerCase())).then(d => {
+  if (/^[A-Za-z][A-Za-z'-]*$/.test(text)) tasks.push(
+    get('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(text.toLowerCase())).then(d => {
       const ph = (d[0]?.phonetics || []).filter(p => p.text || p.audio);
       const us = ph.find(p => /-us\.\w+$/.test(p.audio || '')) || ph.find(p => p.audio) || ph[0];
-      m.ipa = (us?.text || ph.find(p => p.text)?.text || '').replace(/^\/|\/$/g, '');
-      m.audio = us?.audio || '';
-      m.pos = [...new Set((d[0]?.meanings || []).map(x => x.partOfSpeech))].slice(0, 3).join('、');
+      info.ipa = (us?.text || ph.find(p => p.text)?.text || '').replace(/^\/|\/$/g, '');
+      info.audio = us?.audio || '';
+      const rawMeanings = d[0]?.meanings || [];
+      info.pos = [...new Set(rawMeanings.map(x => x.partOfSpeech))].slice(0, 3).join('、');
+      info.meanings = rawMeanings.slice(0, 3).map(m => ({
+        pos: m.partOfSpeech || '',
+        defs: (m.definitions || []).slice(0, 2).map(def => ({
+          def: def.definition || '',
+          example: def.example || '',
+          synonyms: (def.synonyms && def.synonyms.length ? def.synonyms : m.synonyms || []).slice(0, 4)
+        }))
+      })).filter(m => m.defs.length);
     }));
   await Promise.allSettled(tasks);
-  m.looked = m.zh || m.ipa ? 'ok' : 'fail';
+  return info;
+}
+
+async function lookupMemo(m) {
+  const info = await fetchWordInfo(m.text);
+  if (info.zh) m.zh = info.zh;
+  if (info.ipa) m.ipa = info.ipa;
+  if (info.audio) m.audio = info.audio;
+  if (info.pos) m.pos = info.pos;
+  if (info.meanings.length) m.meanings = info.meanings;
+  m.looked = m.zh || m.ipa || m.meanings?.length ? 'ok' : 'fail';
   save(); renderMemos();
 }
+
+/* ---------- standalone word lookup ---------- */
+let lookupState = { query: '', loading: false, info: null, error: false };
+
+function openLookup(text) {
+  $('lookupInput').value = text;
+  $('lookup').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  runLookup(text);
+}
+
+async function runLookup(raw) {
+  const text = raw.trim().replace(/\s+/g, ' ');
+  if (!text) return;
+  lookupState = { query: text, loading: true, info: null, error: false };
+  renderLookup();
+  const info = await fetchWordInfo(text);
+  if (lookupState.query !== text) return;
+  const ok = !!(info.zh || info.ipa || info.meanings.length);
+  lookupState = { query: text, loading: false, info, error: !ok };
+  renderLookup();
+}
+
+function addMemoFromLookup(text, info) {
+  if (store.memos.some(m => m.text.toLowerCase() === text.toLowerCase())) return;
+  const m = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    text,
+    note: '',
+    at: C.dayStr(),
+    zh: info?.zh || '',
+    ipa: info?.ipa || '',
+    audio: info?.audio || '',
+    pos: info?.pos || '',
+    meanings: info?.meanings || [],
+    looked: info && (info.zh || info.ipa || info.meanings?.length) ? 'ok' : undefined
+  };
+  store.memos.unshift(m);
+  save(); renderMemos(); renderLookup();
+}
+
+function renderLookup() {
+  const box = $('lookupResult');
+  const { query, loading, info, error } = lookupState;
+  if (!query) {
+    put(box, el('p', { class: 'hint', style: 'margin:8px 0 0' }, '輸入英文單字或片語即可即時查詢翻譯、音標、真人發音、英文釋義與例句。'));
+    return;
+  }
+  const hit = inLibrary(query);
+  const inMemo = store.memos.some(m => m.text.toLowerCase() === query.toLowerCase());
+  const libBanner = hit ? el('div', { class: 'lookup-lib' },
+    el('span', {}, `「${hit.w}」已在詞庫中（${hit.zh}）`),
+    el('button', { class: 'chip', type: 'button', onclick: () => { select(hit.id); window.scrollTo({ top: 0, behavior: 'smooth' }); } }, '跳到這個字 →')) : null;
+
+  if (loading) {
+    put(box, libBanner, el('p', { class: 'status', style: 'margin-top:10px' }, `正在查詢「${query}」…`));
+    return;
+  }
+  if (error || !info) {
+    put(box, libBanner, el('p', { class: 'status err', style: 'margin-top:10px' }, `查不到「${query}」的翻譯或釋義，請確認拼字或網路連線。`));
+    return;
+  }
+
+  const playTarget = { text: query, audio: info.audio };
+  const head = el('div', { class: 'lookup-head' },
+    el('div', { class: 'lookup-title' },
+      el('button', { class: 'memo-word', type: 'button', title: info.audio ? '播放真人錄音' : '播放', onclick: () => playMemo(playTarget) }, '▶ ' + query),
+      el('button', { class: 'chip', type: 'button', onclick: () => playMemo(playTarget, true) }, '慢速'),
+      info.ipa ? el('span', { class: 'memo-ipa' }, '/' + info.ipa + '/') : null),
+    !hit ? (inMemo
+      ? el('span', { class: 'tag' }, '已在備忘錄')
+      : el('button', { class: 'btn', type: 'button', onclick: () => addMemoFromLookup(query, info) }, '＋ 加入備忘錄')) : null);
+
+  const zhEl = info.zh ? el('div', { class: 'lookup-zh' }, info.zh, info.pos ? el('small', {}, '　' + info.pos) : null, el('small', {}, '　機器翻譯')) : null;
+
+  const meaningsEl = info.meanings.length ? el('div', { class: 'lookup-meanings' },
+    info.meanings.map(m => el('div', { class: 'lookup-pos-group' },
+      m.pos ? el('span', { class: 'lookup-pos' }, m.pos) : null,
+      el('ol', { class: 'lookup-defs' }, m.defs.map(d => el('li', {},
+        el('div', { class: 'lookup-def' }, d.def),
+        d.example ? el('div', { class: 'lookup-ex' },
+          el('button', { class: 'chip', type: 'button', title: '播放例句', onclick: () => speak(d.example) }, '▶'),
+          el('span', {}, d.example)) : null,
+        d.synonyms.length ? el('div', { class: 'lookup-syns' },
+          el('span', { class: 'hint', style: 'margin:0' }, '同義詞：'),
+          d.synonyms.map(s => el('button', { class: 'chip', type: 'button', onclick: () => openLookup(s) }, s))) : null)))))) : null;
+
+  put(box, libBanner, head, zhEl, meaningsEl);
+}
+
+$('lookupForm').addEventListener('submit', e => {
+  e.preventDefault();
+  runLookup($('lookupInput').value);
+});
 function playMemo(m, slow) {
   if (slow || !m.audio) { speak(m.text, slow ? 0.55 : undefined); return; }
   stopAll(); const a = new Audio(m.audio); clip = a;
@@ -519,6 +824,7 @@ function delMemo(id) {
   put($('memoStatus'), '已刪除「' + undoMemo.memo.text + '」 ',
     el('button', { class: 'chip', type: 'button', onclick: () => { if (!undoMemo) return; store.memos.splice(undoMemo.i, 0, undoMemo.memo); undoMemo = null; save(); renderMemos(); $('memoStatus').textContent = '已復原'; } }, '復原'));
 }
+$('statsLink').addEventListener('click', () => { $('stats').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('memoLink').addEventListener('click', () => { $('memo').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('memoText').focus({ preventScroll: true }), 400); });
 $('memoForm').addEventListener('submit', e => {
   e.preventDefault();
@@ -610,7 +916,7 @@ $('ocrFile').addEventListener('change', e => {
     $('head').replaceChildren(el('p', { class: 'warn' }, '讀不到 words.json（' + e.message + '）。請用網站伺服器開啟，不要直接雙擊 HTML 檔，例如執行 npm run dev。'));
     return;
   }
-  renderChart(); renderQuiz(); renderPairs(); renderMemos();
+  renderChart(); renderQuiz(); renderPairs(); renderMemos(); renderLookup(); renderStats();
   const hid = decodeURIComponent(location.hash.slice(1));
   if (hid && items.some(w => w.id === hid)) select(hid);
   else { const { queue } = queueInfo(); select((queue[0] || items[0]).id); }

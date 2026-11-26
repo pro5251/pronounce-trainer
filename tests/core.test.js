@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {
   validateEntry, makeItem, ipaOf, respell, parseToken, checkSpeech,
   grade, isDue, buildQueue, addDays, daysBetween, extractWords,
+  recordHistory, seedHistoryFromProg, wordHistory, computeStats,
 } from '../public/js/core.js';
 
 const words = JSON.parse(fs.readFileSync(new URL('../public/words.json', import.meta.url), 'utf8')).items;
@@ -101,4 +102,65 @@ test('extractWords pulls clean words from OCR text', () => {
     ['FIRING', 'summary', 'latency', 'exceeded', 'high', 'kube', 'pod', 'crash', 'looping']);
   assert.deepEqual(extractWords(''), []);
   assert.deepEqual(extractWords('123 4.5 = /'), []);
+});
+
+test('daily history records reviews, replaces same-day regrade, and preserves isNew', () => {
+  let h = {};
+  h = recordHistory(h, 'threshold', 0, '2026-11-22', true);
+  h = recordHistory(h, 'threshold', 2, '2026-11-22', false); // re-graded same day
+  assert.deepEqual(h['2026-11-22'].items.threshold, { g: 2, isNew: true });
+  h = recordHistory(h, 'threshold', 1, '2026-11-24', false);
+  const wh = wordHistory(h, 'threshold');
+  assert.deepEqual(wh, [
+    { day: '2026-11-24', g: 1, isNew: false },
+    { day: '2026-11-22', g: 2, isNew: true },
+  ]);
+});
+
+test('seedHistoryFromProg backfills latest review dates for existing progress', () => {
+  const prog = {
+    a: { last: '2026-11-20', first: '2026-11-20', g: 2, n: 1 },
+    b: { last: '2026-11-20', first: '2026-11-18', g: 0, n: 3 },
+    c: { f: true },
+  };
+  const h = seedHistoryFromProg(prog);
+  assert.deepEqual(h['2026-11-20'].items, {
+    a: { g: 2, isNew: true },
+    b: { g: 0 },
+  });
+});
+
+test('computeStats calculates streaks, daily breakdowns, mastery, and 28-day window', () => {
+  const items = [{ id: 'w1' }, { id: 'w2' }, { id: 'w3' }, { id: 'w4' }];
+  const prog = {
+    w1: { last: '2026-11-24', first: '2026-11-22', g: 2, n: 3 },
+    w2: { last: '2026-11-23', first: '2026-11-23', g: 0, n: 1 },
+    w4: { a: true, last: '2026-11-20', g: 2, n: 1 },
+  };
+  let h = {};
+  h = recordHistory(h, 'w1', 1, '2026-11-18', false);
+  h = recordHistory(h, 'w1', 1, '2026-11-19', false);
+  h = recordHistory(h, 'w1', 1, '2026-11-20', false);
+  h = recordHistory(h, 'w1', 1, '2026-11-21', false);
+  h = recordHistory(h, 'w1', 1, '2026-11-23', false);
+  h = recordHistory(h, 'w2', 0, '2026-11-23', true);
+  h = recordHistory(h, 'w1', 2, '2026-11-24', false);
+
+  const st = computeStats(items, prog, h, '2026-11-24');
+  assert.equal(st.streak, 2);
+  assert.equal(st.longestStreak, 4);
+  assert.equal(st.totalDays, 6);
+  assert.equal(st.totalReviews, 7);
+  assert.equal(st.learnedCount, 2);
+  assert.equal(st.activeCount, 3);
+  assert.deepEqual(st.mastery, [1, 0, 1]);
+  assert.deepEqual(st.todaySummary, { total: 1, isNew: 0, grades: [0, 0, 1] });
+  assert.equal(st.recent28.length, 28);
+  assert.equal(st.recent28[27].day, '2026-11-24');
+  assert.equal(st.recent28[27].count, 1);
+
+  // Streak still holds on the next day before studying today
+  const nextDay = computeStats(items, prog, h, '2026-11-25');
+  assert.equal(nextDay.streak, 2);
+  assert.equal(nextDay.todaySummary.total, 0);
 });

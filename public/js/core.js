@@ -265,3 +265,116 @@ export function extractWords(text){
   }
   return out;
 }
+
+/* ---------- daily learning history & statistics ---------- */
+export function recordHistory(history, id, g, today, isNew){
+  const next={...(history||{})};
+  const dayRec=next[today]||{};
+  const prevItems=dayRec.items||{};
+  const prevEntry=prevItems[id];
+  const entry={g};
+  if(isNew||prevEntry?.isNew) entry.isNew=true;
+  next[today]={items:{...prevItems,[id]:entry}};
+  return next;
+}
+
+export function seedHistoryFromProg(prog){
+  let history={};
+  for(const [id,p] of Object.entries(prog||{})){
+    if(!p||!p.last) continue;
+    const g=typeof p.g==='number'?p.g:1;
+    history=recordHistory(history,id,g,p.last,p.first===p.last);
+  }
+  return history;
+}
+
+export function wordHistory(history, id){
+  const out=[];
+  for(const [day,rec] of Object.entries(history||{})){
+    const e=rec?.items?.[id];
+    if(e) out.push({day,g:e.g,isNew:!!e.isNew});
+  }
+  out.sort((a,b)=>b.day.localeCompare(a.day));
+  return out;
+}
+
+export function computeStats(items, prog, history, today){
+  const hist=history||{};
+  const active=items.filter(it=>!prog[it.id]?.a);
+  const mastery=[0,0,0];
+  let learnedCount=0;
+  for(const it of active){
+    const p=prog[it.id];
+    if(p&&(p.n>0||p.last)){
+      learnedCount++;
+      const g=p.g===0||p.g===1||p.g===2?p.g:1;
+      mastery[g]++;
+    }
+  }
+
+  const days=[];
+  const dayCountMap=new Map();
+  let historyReviews=0;
+  for(const [day,rec] of Object.entries(hist)){
+    const entries=Object.entries(rec?.items||{});
+    if(!entries.length) continue;
+    const grades=[0,0,0];
+    let isNew=0;
+    const dayItems=[];
+    for(const [id,e] of entries){
+      const g=e.g===0||e.g===1||e.g===2?e.g:1;
+      grades[g]++;
+      if(e.isNew) isNew++;
+      dayItems.push({id,g,isNew:!!e.isNew});
+    }
+    historyReviews+=entries.length;
+    dayCountMap.set(day,{count:entries.length,grades});
+    days.push({day,total:entries.length,isNew,grades,items:dayItems});
+  }
+  days.sort((a,b)=>b.day.localeCompare(a.day));
+
+  const progReviews=Object.values(prog||{}).reduce((sum,p)=>sum+(p?.n||0),0);
+  const totalReviews=Math.max(historyReviews,progReviews);
+
+  // Current streak: counts consecutive days ending today, or ending yesterday if not studied today yet.
+  let streak=0;
+  let cursor=dayCountMap.has(today)?today:addDays(today,-1);
+  while(dayCountMap.has(cursor)){
+    streak++;
+    cursor=addDays(cursor,-1);
+  }
+
+  // Longest streak across all recorded days.
+  const ascDays=[...dayCountMap.keys()].sort();
+  let longestStreak=0, run=0;
+  for(let i=0;i<ascDays.length;i++){
+    if(i>0&&daysBetween(ascDays[i-1],ascDays[i])===1) run++;
+    else run=1;
+    if(run>longestStreak) longestStreak=run;
+  }
+
+  const todayRec=days.find(d=>d.day===today);
+  const todaySummary=todayRec
+    ? {total:todayRec.total,isNew:todayRec.isNew,grades:todayRec.grades}
+    : {total:0,isNew:0,grades:[0,0,0]};
+
+  const recent28=[];
+  for(let i=27;i>=0;i--){
+    const d=addDays(today,-i);
+    const info=dayCountMap.get(d);
+    recent28.push({day:d,count:info?info.count:0,grades:info?info.grades:[0,0,0]});
+  }
+
+  return {
+    streak,
+    longestStreak,
+    totalDays:days.length,
+    totalReviews,
+    learnedCount,
+    activeCount:active.length,
+    mastery,
+    todaySummary,
+    days,
+    recent28,
+  };
+}

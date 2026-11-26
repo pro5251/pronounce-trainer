@@ -16,7 +16,10 @@
       <h1>告警英文發音拆解</h1>
       <p class="sub">點字母聽它對應的音，念給它聽確認自己念對，每天只複習到期的項目。</p>
     </div>
-    <button class="btn memo-link" type="button" id="memoLink">📝 新增／備忘錄</button>
+    <div class="head-actions">
+      <button class="btn" type="button" id="statsLink">📊 學習統計</button>
+      <button class="btn" type="button" id="memoLink">📝 新增／備忘錄</button>
+    </div>
     <div class="legend" aria-label="顏色說明">
       <span class="lg"><span class="dot" style="background:var(--vowel)"></span>母音</span>
       <span class="lg"><span class="dot" style="background:var(--cons)"></span>子音</span>
@@ -66,6 +69,18 @@
       <section class="card">
         <h2>這個音怎麼發</h2>
         <div id="detail" style="margin-top:10px"></div>
+      </section>
+      <section class="card" id="stats">
+        <h2>學習統計與歷史紀錄</h2>
+        <div id="statsBody" style="margin-top:10px"></div>
+      </section>
+      <section class="card" id="lookup">
+        <h2>查詢單字</h2>
+        <form class="lookup-form" id="lookupForm" autocomplete="off">
+          <input type="search" id="lookupInput" placeholder="輸入英文單字或片語，例如 threshold、inhibit…" aria-label="查詢英文單字" maxlength="200">
+          <button class="btn primary" type="submit">查詢</button>
+        </form>
+        <div id="lookupResult" class="lookup-result"></div>
       </section>
       <section class="card" id="memo">
         <h2>新增單字／陌生單字備忘錄</h2>
